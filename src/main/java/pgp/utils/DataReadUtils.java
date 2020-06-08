@@ -1,7 +1,12 @@
 package pgp.utils;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import org.bouncycastle.bcpg.BCPGInputStream;
+import org.bouncycastle.openpgp.*;
+import org.bouncycastle.openpgp.bc.BcPGPObjectFactory;
+import org.bouncycastle.openpgp.jcajce.JcaPGPObjectFactory;
+import org.bouncycastle.util.io.Streams;
+
+import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -18,6 +23,16 @@ public class DataReadUtils {
 
   public static byte[] readBytesFromFile(String filename) throws IOException {
     return Files.readAllBytes(Paths.get(filename));
+  }
+
+  public static byte[] readBytesFromZipArchive(String zipFileName) throws IOException, PGPException {
+    InputStream fileInputStream = new FileInputStream(zipFileName);
+    PGPObjectFactory pgpFact = new BcPGPObjectFactory(fileInputStream);
+    PGPCompressedData cData = (PGPCompressedData)pgpFact.nextObject();
+    pgpFact = new BcPGPObjectFactory(cData.getDataStream());
+    PGPLiteralData ld = (PGPLiteralData)pgpFact.nextObject();
+    return Streams.readAll(ld.getInputStream());
+
   }
 
 

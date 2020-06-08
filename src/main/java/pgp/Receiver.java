@@ -2,21 +2,22 @@ package pgp;
 
 import org.apache.log4j.BasicConfigurator;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.bc.BcPGPPublicKeyRingCollection;
-import org.bouncycastle.openpgp.bc.BcPGPSecretKeyRingCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pgp.utils.DataReadUtils;
+import pgp.utils.DataWriteUtils;
 import pgp.utils.KeyRingUtils;
 import pgp.utils.PGPUtils;
 
-import java.io.IOException;
+
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.security.PublicKey;
 import java.security.Security;
-import java.util.List;
 
 public class Receiver {
 
@@ -47,16 +48,29 @@ public class Receiver {
         PGPPublicKey publicKey = keyRingCollection.getKeyRings().next().getPublicKey();
         logger.info("Found public key.");
 
-        logger.info("Reading signed message...");
-        byte[] signedMessage  = DataReadUtils.readBytesFromFile(Sender.outputFileName);
-        logger.info("Read signed message");
+//        logger.info("Reading signed message...");
+//        byte[] signedMessage  = DataReadUtils.readBytesFromFile(Sender.outputFileName);
+//        logger.info("Read signed message");
 
-        logger.info("Verifying signed message...");
-        byte[] message = pgpUtils.readSignedMessage(signedMessage, publicKey);
-        logger.info("Verified signed message");
+        logger.info("Reading signed message from zip archive...");
+        //byte[] signedMessageZIP = DataReadUtils.readBytesFromZipArchive(Sender.zipFileName);
+        logger.info("Read signed message from");
 
-        String messageString = new String(message, Charset.defaultCharset());
+        //logger.info("Verifying signed message...");
+        //byte[] message = pgpUtils.readSignedMessage(signedMessageZIP, publicKey);
+        //logger.info("Verified signed message");
+
+        InputStream in = new BufferedInputStream(new FileInputStream(Sender.encodedOutputFileName));
+        pgpUtils.readEncryptedFile(in);
+        in.close();
+
+        String messageString = new String(DataReadUtils.readBytesFromFile("fuck.txt"),Charset.defaultCharset());
         logger.info("Received message: {}", messageString);
+
+        DataWriteUtils.writeBytesToFile(
+                pgpUtils.readSignedMessage(DataReadUtils.readBytesFromFile("fuck.txt"), publicKey),
+                "ako-ovo-radi.txt"
+        );
 
 
     }
