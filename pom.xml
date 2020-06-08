@@ -17,6 +17,15 @@
           <target>8</target>
         </configuration>
       </plugin>
+
+      <plugin>
+        <groupId>org.openjfx</groupId>
+        <artifactId>javafx-maven-plugin</artifactId>
+        <version>0.0.4</version>
+        <configuration>
+          <mainClass>GUI</mainClass>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 
@@ -28,5 +37,13 @@
     <version>1.60</version>
   </dependency>
 
-</dependencies>
+    <!-- https://mvnrepository.com/artifact/org.openjfx/javafx-controls -->
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-controls</artifactId>
+      <version>15-ea+5</version>
+    </dependency>
+
+
+  </dependencies>
 </project>
