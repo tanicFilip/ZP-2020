@@ -74,7 +74,6 @@ public class Sender {
         logger.info("Saved signed message to file {}.", outputFileName);
 
         logger.info("Encrypting message...");
-        // TODO - figure out why zip = false fails
         pgpUtils.encryptMessage(outputFileName, encodedOutputFileName, password, false);
         logger.info("Message encrypted.");
 
