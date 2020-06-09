@@ -33,7 +33,6 @@ public class Sender {
     public static final String inputFileName = "input.txt";
     public static final String outputFileName = "signed-input.asc";
     public static final String encodedOutputFileName = "encoded-input.asc";
-    public static final String zipFileName = "signed-archive.zip";
 
     public static final String DSA = "DSA";
     public static final int keySize = 1024;
@@ -54,21 +53,12 @@ public class Sender {
         initSecurityProvider();
         configureLogging();
 
-        logger.info("Generating empty keyring collection...");
-        BcPGPSecretKeyRingCollection keyRingCollection = keyRingUtils.generateEmptySecretKeyRingCollection();
-        logger.info("Generated empty keyring collection.");
-
         logger.info("Generate new key pair...");
         PGPKeyPair keyPair = pgpUtils.generateKeyPair(DSA, PublicKeyAlgorithmTags.DSA, keySize);
         logger.info("Generated new key pair.");
 
         logger.info("Add keypair to keyring collection...");
-        PGPSecretKeyRing secretKeyRing = keyRingUtils.generateSecretKeyRing(email, password, keyPair);
-        PGPSecretKeyRingCollection.addSecretKeyRing(keyRingCollection, secretKeyRing);
-        logger.info("Added keypair to keyring collection.");
-
-        logger.info("Save new keyring collection to file...");
-        DataWriteUtils.writeBytesToFile(keyRingCollection.getEncoded(), senderKeyringFileName);
+        keyRingUtils.addKeyPairToKeyRings(email, password, keyPair);
         logger.info("Saved new keyring collection to file.");
 
         logger.info("Start reading message from file {}...", inputFileName);
@@ -83,27 +73,10 @@ public class Sender {
         DataWriteUtils.writeBytesToFile(signedMessage, outputFileName);
         logger.info("Saved signed message to file {}.", outputFileName);
 
-        logger.info("Saving signed message to a zip archive: {}...", zipFileName);
-        //DataWriteUtils.writeBytesToZip(zipFileName);
-        logger.info("Saved signed message to a zip archive: {}.", zipFileName);
+        logger.info("Encrypting message...");
+        // TODO - figure out why zip = false fails
+        pgpUtils.encryptMessage(outputFileName, encodedOutputFileName, password, false);
+        logger.info("Message encrypted.");
 
-        OutputStream outputStream = new ArmoredOutputStream(new FileOutputStream(encodedOutputFileName));
-        ByteArrayOutputStream bOut = new ByteArrayOutputStream();
-        PGPCompressedDataGenerator comData = new PGPCompressedDataGenerator(CompressionAlgorithmTags.ZIP);
-        PGPUtil.writeFileToLiteralData(bOut, PGPLiteralData.BINARY, new File(outputFileName));
-        comData.close();
-        byte[] compressedData = bOut.toByteArray();
-
-        PGPEncryptedDataGenerator encGen = new PGPEncryptedDataGenerator(new JcePGPDataEncryptorBuilder(PGPEncryptedData.AES_128)
-                .setWithIntegrityPacket(true).setSecureRandom(new SecureRandom()).setProvider("BC"));
-
-        encGen.addMethod(new JcePBEKeyEncryptionMethodGenerator(password.toCharArray()).setProvider("BC"));
-
-        OutputStream encOut = encGen.open(outputStream, compressedData.length);
-
-        encOut.write(compressedData);
-        encOut.close();
-        encGen.close();
-        outputStream.close();
     }
 }

@@ -22,16 +22,10 @@ public class DataWriteUtils {
   }
 
   public static void writeBytesToFile(byte[] data, String filename) throws IOException {
-    Files.write(Paths.get(filename), data);
+    OutputStream outputStream = new FileOutputStream(filename);
+    outputStream.write(data);
+    outputStream.flush();
+    outputStream.close();
+    //Files.write(Paths.get(filename), data);
   }
-
-  public static byte[] writeBytesToZip(String fileName) throws IOException {
-    ByteArrayOutputStream bOut = new ByteArrayOutputStream();
-    //PGPCompressedDataGenerator comData = new PGPCompressedDataGenerator(CompressionAlgorithmTags.ZIP);
-    PGPUtil.writeFileToLiteralData(bOut, PGPLiteralData.BINARY,
-            new File(fileName));
-    //comData.close();
-    return bOut.toByteArray();
-  }
-
 }
