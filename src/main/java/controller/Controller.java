@@ -1,5 +1,6 @@
 package controller;
 
+import gui.GenerateKeyStage;
 import javafx.event.Event;
 import javafx.scene.control.MenuItem;
 
@@ -8,28 +9,12 @@ import javafx.scene.control.MenuItem;
  */
 public class Controller {
 
-    public static void  initGenerateKeyPair(MenuItem menuItem){
-        menuItem.setOnAction(value -> {
-            System.out.println("action 1");
-        });
+    public static void generateKeyPair(String name, String email, String password, GenerateKeyStage.ASYMMETRIC algorithm, int keySize){
+        // To Do: Implement a call to some method from pgp package that generates a new key pair
     }
 
-    public static void  initDeleteKeyPair(MenuItem menuItem){
-        menuItem.setOnAction(value -> {
-            System.out.println("action 2");
-        });
-    }
-
-    public static void  initEncryptMessage(MenuItem menuItem){
-        menuItem.setOnAction(value -> {
-            System.out.println("action 3");
-        });
-    }
-
-    public static void  initDecryptMessage(MenuItem menuItem){
-        menuItem.setOnAction(value -> {
-            System.out.println("action 4");
-        });
+    public static void deleteKeyPair(String name, String email, String password){
+        // To Do: Implement a call to some method from pgp package that generates a new key pair
     }
 
 }
