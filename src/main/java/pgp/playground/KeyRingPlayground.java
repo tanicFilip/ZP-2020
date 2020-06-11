@@ -34,7 +34,7 @@ import java.util.Iterator;
 // Note = all classes in this package are here just to figure stuff out, and not much more. This can all be deleted
 public class KeyRingPlayground {
 
-    KeyRingUtils keyRingUtils = new KeyRingUtils();
+    KeyRingUtils keyRingUtils;// = new KeyRingUtils();
 
     private BcPGPSecretKeyRingCollection secretKeyRings;
     private BcPGPPublicKeyRingCollection publicKeyRings;

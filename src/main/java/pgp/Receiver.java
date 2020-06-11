@@ -25,7 +25,7 @@ public class Receiver {
     private static final Logger logger = LoggerFactory.getLogger(Sender.class);
 
     public static PGPUtils pgpUtils = new PGPUtils();
-    public static KeyRingUtils keyRingUtils = new KeyRingUtils();
+    public static KeyRingUtils keyRingUtils = new KeyRingUtils("", "");
 
     public static void configureLogging(){
         BasicConfigurator.configure();
@@ -37,7 +37,7 @@ public class Receiver {
 
     public static void main(String[] args) throws Exception {
 
-        initSecurityProvider();
+        /*initSecurityProvider();
         configureLogging();
 
         logger.info("Adding public key rings to the collection...");
@@ -79,7 +79,7 @@ public class Receiver {
 
         DataWriteUtils.writeBytesToFile(message, receivedMessageFileName);
 
-
+        */
     }
 
 }

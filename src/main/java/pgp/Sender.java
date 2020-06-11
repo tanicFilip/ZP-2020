@@ -38,7 +38,7 @@ public class Sender {
     public static final int keySize = 1024;
 
     public static PGPUtils pgpUtils = new PGPUtils();
-    public static KeyRingUtils keyRingUtils = new KeyRingUtils();
+    public static KeyRingUtils keyRingUtils = new KeyRingUtils("", "");
 
 
     public static void configureLogging(){
@@ -50,7 +50,7 @@ public class Sender {
     }
 
     public static void main(String[] args) throws IOException, PGPException, NoSuchAlgorithmException {
-        initSecurityProvider();
+        /*initSecurityProvider();
         configureLogging();
 
         logger.info("Generate new key pair...");
@@ -76,6 +76,6 @@ public class Sender {
         logger.info("Encrypting message...");
         pgpUtils.encryptMessage(outputFileName, encodedOutputFileName, password, false);
         logger.info("Message encrypted.");
-
+        */
     }
 }

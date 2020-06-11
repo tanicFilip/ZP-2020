@@ -1,7 +1,6 @@
 package gui;
 
 import controller.Controller;
-import controller.ControllerGUI;
 import javafx.application.Application;
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -39,7 +38,7 @@ public class GUI extends Application {
         generateKeyPair.setAccelerator(
                 new KeyCharacterCombination(String.valueOf(KeyCode.G), KeyCombination.CONTROL_DOWN)
         );
-        ControllerGUI.initGenerateKeyPair(generateKeyPair, primaryStage);
+        Controller.initGenerateKeyPair(generateKeyPair, primaryStage);
         deleteKeyPair = new MenuItem("Delete a key pair");
         deleteKeyPair.setAccelerator(
                 new KeyCharacterCombination(String.valueOf(KeyCode.DELETE))// why does it not work?
@@ -61,12 +60,12 @@ public class GUI extends Application {
         encryptMessage.setAccelerator(
                 new KeyCharacterCombination(String.valueOf(KeyCode.E), KeyCombination.CONTROL_DOWN)
         );
-        ControllerGUI.initEncryptMessage(encryptMessage);
+        Controller.initEncryptMessage(encryptMessage);
         decryptMessage = new MenuItem("Decrypt a message");
         decryptMessage.setAccelerator(
                 new KeyCharacterCombination(String.valueOf(KeyCode.D), KeyCombination.CONTROL_DOWN)
         );
-        ControllerGUI.initDecryptMessage(decryptMessage);
+        Controller.initDecryptMessage(decryptMessage);
 
         messageMenu.getItems().addAll(encryptMessage, decryptMessage);
 

@@ -1,5 +1,6 @@
 package gui;
 
+import backend.Backend;
 import controller.Controller;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -9,18 +10,12 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.scene.control.Alert.*;
 
+import static backend.Backend.*;
+
 public class GenerateKeyStage extends Stage {
 
-    public static enum ASYMMETRIC {
-        DSA , ELGAMAL;
-    }
-
-    public static int KEY_SIZE_1024 = 1024;
-    public static int KEY_SIZE_2048 = 2048;
-    public static int KEY_SIZE_4096 = 4096;
-
-    private ASYMMETRIC asymmetricAlgo = ASYMMETRIC.DSA;
-    private int keySize = KEY_SIZE_1024;
+    private int keySizeDSA = KEY_SIZE_1024;
+    private int keySizeELGAMAL = KEY_SIZE_1024;
 
     private VBox root;
     private Scene scene;
@@ -46,57 +41,52 @@ public class GenerateKeyStage extends Stage {
         radioButtonPane.setHgap(15);
         radioButtonPane.setVgap(5);
 
-        ToggleGroup keySizeGroup = new ToggleGroup();
+        ToggleGroup keySizeDSAGroup = new ToggleGroup();
 
-        Label keySizeLabel = new Label("Key size");
-        radioButtonPane.add(keySizeLabel, 1, 0);
+        Label keySizeDSALabel = new Label("DSA key size");
+        radioButtonPane.add(keySizeDSALabel, 0, 0);
 
-        RadioButton key1024Radio = new RadioButton("1024");
-        key1024Radio.setSelected(true);
-        key1024Radio.setOnAction(event -> {
-            keySize = KEY_SIZE_1024;
+        RadioButton key1024RadioDSA = new RadioButton("1024");
+        key1024RadioDSA.setSelected(true);
+        key1024RadioDSA.setOnAction(event -> {
+            keySizeDSA = KEY_SIZE_1024;
         });
-        key1024Radio.setToggleGroup(keySizeGroup);
-        radioButtonPane.add(key1024Radio, 1, 1);
+        key1024RadioDSA.setToggleGroup(keySizeDSAGroup);
+        radioButtonPane.add(key1024RadioDSA, 0, 1);
 
-        RadioButton key2048Radio = new RadioButton("2048");
-        key2048Radio.setOnAction(event -> {
-            keySize = KEY_SIZE_2048;
+        RadioButton key2048RadioDSA = new RadioButton("2048");
+        key2048RadioDSA.setOnAction(event -> {
+            keySizeDSA = KEY_SIZE_2048;
         });
-        key2048Radio.setToggleGroup(keySizeGroup);
-        radioButtonPane.add(key2048Radio, 1, 2);
+        key2048RadioDSA.setToggleGroup(keySizeDSAGroup);
+        radioButtonPane.add(key2048RadioDSA, 0, 2);
 
-        RadioButton key4096Radio = new RadioButton("4096");
-        key4096Radio.setOnAction(event -> {
-            keySize = KEY_SIZE_4096;
+        ToggleGroup keySizeELGAMALGroup = new ToggleGroup();
+
+        Label keySizeELGAMALLabel = new Label("ElGamal key size");
+        radioButtonPane.add(keySizeELGAMALLabel, 1, 0);
+
+        RadioButton key1024RadioELGAMAL = new RadioButton("1024");
+        key1024RadioELGAMAL.setSelected(true);
+        key1024RadioELGAMAL.setOnAction(event -> {
+            keySizeELGAMAL = KEY_SIZE_1024;
         });
-        key4096Radio.setToggleGroup(keySizeGroup);
-        key4096Radio.setDisable(true);
-        radioButtonPane.add(key4096Radio, 1, 3);
+        key1024RadioELGAMAL.setToggleGroup(keySizeELGAMALGroup);
+        radioButtonPane.add(key1024RadioELGAMAL, 1, 1);
 
-        Label algorithmLabel = new Label("Algorithm");
-        radioButtonPane.add(algorithmLabel, 0, 0);
-
-        RadioButton dsaRadio = new RadioButton("DSA");
-        dsaRadio.setSelected(true);
-        dsaRadio.setOnAction(event -> {
-            asymmetricAlgo = ASYMMETRIC.DSA;
-            key4096Radio.setDisable(true);
-            if(keySize == KEY_SIZE_4096){
-                keySize = KEY_SIZE_1024;
-                key1024Radio.setSelected(true);
-            }
+        RadioButton key2048RadioELGAMAL = new RadioButton("2048");
+        key2048RadioELGAMAL.setOnAction(event -> {
+            keySizeELGAMAL = KEY_SIZE_2048;
         });
-        dsaRadio.setToggleGroup(algorithmGroup);
-        radioButtonPane.add(dsaRadio, 0, 1);
+        key2048RadioELGAMAL.setToggleGroup(keySizeELGAMALGroup);
+        radioButtonPane.add(key2048RadioELGAMAL, 1, 2);
 
-        RadioButton elgamalRadio = new RadioButton("ElGamal");
-        elgamalRadio.setOnAction(event -> {
-            asymmetricAlgo = ASYMMETRIC.ELGAMAL;
-            key4096Radio.setDisable(false);
+        RadioButton key4096RadioELGAMAL = new RadioButton("4096");
+        key4096RadioELGAMAL.setOnAction(event -> {
+            keySizeELGAMAL = KEY_SIZE_4096;
         });
-        elgamalRadio.setToggleGroup(algorithmGroup);
-        radioButtonPane.add(elgamalRadio, 0, 2);
+        key4096RadioELGAMAL.setToggleGroup(keySizeELGAMALGroup);
+        radioButtonPane.add(key4096RadioELGAMAL, 1, 3);
 
         Button generateButton = new Button("Generate");
         generateButton.setOnAction(event -> {
@@ -108,8 +98,8 @@ public class GenerateKeyStage extends Stage {
                         nameTextField.getText(),
                         emailTextField.getText(),
                         passwordTextField.getText(),
-                        asymmetricAlgo,
-                        keySize
+                        keySizeDSA,
+                        keySizeELGAMAL
                 );
             }
         });
@@ -128,12 +118,17 @@ public class GenerateKeyStage extends Stage {
         this.setScene(this.scene);
     }
 
-    public ASYMMETRIC getAsymmetricAlgo() {
-        return asymmetricAlgo;
+    public int getKeySizeDSA() {
+        return keySizeDSA;
     }
 
-    public int getKeySize() {
-        return keySize;
+    public int getKeySizeELGAMAL() {
+        return keySizeELGAMAL;
+    }
+
+    public void alertInfo(String message){
+        Alert alert = new Alert(AlertType.INFORMATION, message, ButtonType.OK);
+        alert.showAndWait();
     }
 
 }

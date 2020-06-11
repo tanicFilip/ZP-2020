@@ -21,20 +21,28 @@ public class KeyRingUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(KeyRingUtils.class);
 
-    private PGPSecretKeyRingCollection generateEmptySecretKeyRingCollection() throws IOException, PGPException {
+    private String secretKeyRingCollectionFilename;
+    private String publicKeyRingCollectionFilename;
+
+    public KeyRingUtils(String secretKeyRingCollectionFilename, String publicKeyRingCollectionFilename) {
+        this.secretKeyRingCollectionFilename = secretKeyRingCollectionFilename;
+        this.publicKeyRingCollectionFilename = publicKeyRingCollectionFilename;
+    }
+
+    public PGPSecretKeyRingCollection generateEmptySecretKeyRingCollection() throws IOException, PGPException {
         InputStream inputStream = PGPUtil.getDecoderStream(InputStream.nullInputStream());
         return new BcPGPSecretKeyRingCollection(inputStream);
     }
 
-    private PGPPublicKeyRingCollection generateEmptyPublicKeyRingCollection() throws IOException, PGPException {
+    public PGPPublicKeyRingCollection generateEmptyPublicKeyRingCollection() throws IOException, PGPException {
         InputStream inputStream = PGPUtil.getDecoderStream(InputStream.nullInputStream());
         return new BcPGPPublicKeyRingCollection(inputStream);
     }
 
     // Read keyRingCollection from file (if file does not exist return empty collection)
-    public PGPSecretKeyRingCollection readSecretKeyRingCollectionFromFile(String filename) throws IOException, PGPException {
+    public PGPSecretKeyRingCollection readSecretKeyRingCollectionFromFile() throws IOException, PGPException {
 
-        File file = new File(filename);
+        File file = new File(secretKeyRingCollectionFilename);
         if (!file.exists()) {
             return generateEmptySecretKeyRingCollection();
         }
@@ -43,9 +51,9 @@ public class KeyRingUtils {
 
     }
 
-    public PGPPublicKeyRingCollection readPublicKeyRingCollectionFromFile(String userId) throws IOException, PGPException {
+    public PGPPublicKeyRingCollection readPublicKeyRingCollectionFromFile() throws IOException, PGPException {
 
-        File file = new File(generatePublicKeyRingCollectionFileName(userId));
+        File file = new File(publicKeyRingCollectionFilename);
         if (!file.exists()) {
             return generateEmptyPublicKeyRingCollection();
         }
@@ -60,14 +68,16 @@ public class KeyRingUtils {
     }
 
     // Generates KeyRingPair - adds SecretKeyRing to current users secret key ring file, and creates public key ring file
-    public void addKeyPairToKeyRings(String userId, String password, PGPKeyPair pgpKeyPair) throws PGPException, IOException {
+    public void addKeyPairToKeyRings(
+            String userId, String password, PGPKeyPair pgpKeyPairMaster, PGPKeyPair pgpKeyPairSubkey
+    )throws PGPException, IOException {
 
         var sha1Calculator = new JcaPGPDigestCalculatorProviderBuilder()
                 .build()
                 .get(HashAlgorithmTags.SHA1);
 
         var pgpContentSignerBuilder = new JcaPGPContentSignerBuilder(
-                pgpKeyPair.getPublicKey().getAlgorithm(),
+                pgpKeyPairMaster.getPublicKey().getAlgorithm(),
                 HashAlgorithmTags.SHA384
         );
 
@@ -79,7 +89,7 @@ public class KeyRingUtils {
         var keyRingGenerator =
                 new PGPKeyRingGenerator(
                         PGPSignature.POSITIVE_CERTIFICATION,
-                        pgpKeyPair,
+                        pgpKeyPairMaster,
                         userId,
                         sha1Calculator,
                         null,
@@ -88,20 +98,23 @@ public class KeyRingUtils {
                         pbeSecretKeyEncryptor
                 );
 
-        // Generated public key store to a separate file that can later be exchanged between users
-        DataWriteUtils.writeBytesToFile(keyRingGenerator.generatePublicKeyRing().getEncoded(), generatePublicKeyRingFileName(userId));
+        // Adding the ElGamal subkey with master being the DSA key
+        keyRingGenerator.addSubKey(pgpKeyPairSubkey);
 
-        // Genereate secret key, add it to current private key ring
-        var keyRingCollection = readSecretKeyRingCollectionFromFile(generateSecretKeyRingCollectionFileName(userId));
+        // Generated public key store to a separate file that can later be exchanged between users
+        //DataWriteUtils.writeBytesToFile(keyRingGenerator.generatePublicKeyRing().getEncoded(), generatePublicKeyRingFileName(userId));
+
+        // Generate secret key, add it to current private key ring
+        var keyRingCollection = readSecretKeyRingCollectionFromFile();
         var secretKeyRing = keyRingGenerator.generateSecretKeyRing();
         keyRingCollection = PGPSecretKeyRingCollection.addSecretKeyRing(keyRingCollection, secretKeyRing);
-        DataWriteUtils.writeBytesToFile(keyRingCollection.getEncoded(), generateSecretKeyRingCollectionFileName(userId));
+        DataWriteUtils.writeBytesToFile(keyRingCollection.getEncoded(), secretKeyRingCollectionFilename);
     }
 
     // Adds public key ring from file to users public key ring collection
-    public void addPublicKeyToPublicKeyRingCollection(String userId, String publicKeyFileName) throws IOException, PGPException {
-        PGPPublicKeyRing publicKey = readPublicKeyRingFromFile(publicKeyFileName);
-        PGPPublicKeyRingCollection publicKeyRings = readPublicKeyRingCollectionFromFile(userId);
+    public void addPublicKeyToPublicKeyRingCollection(String publicKeyFilename) throws IOException, PGPException {
+        PGPPublicKeyRing publicKey = readPublicKeyRingFromFile(publicKeyFilename);
+        PGPPublicKeyRingCollection publicKeyRings = readPublicKeyRingCollectionFromFile();
 
         try {
             publicKeyRings = PGPPublicKeyRingCollection.addPublicKeyRing(publicKeyRings, publicKey);
@@ -109,9 +122,8 @@ public class KeyRingUtils {
             logger.error("{} Key is skipped", e.getMessage());
         }
 
-        DataWriteUtils.writeBytesToFile(publicKeyRings.getEncoded(), generatePublicKeyRingCollectionFileName(userId));
+        DataWriteUtils.writeBytesToFile(publicKeyRings.getEncoded(), publicKeyRingCollectionFilename);
     }
-
 
     // No idea why i wrote this method
     public PGPSecretKey findSecretKeyByPublicKey(PGPSecretKeyRingCollection secretKeyRingCollection, PGPPublicKey pgpPublicKey)
@@ -135,7 +147,7 @@ public class KeyRingUtils {
      * @param email
      * @return userId String
      */
-    private String generateUserId(String name, String email){
+    public String generateUserId(String name, String email){
         return String.format("%s__%s", name, email);
     }
 
@@ -146,7 +158,7 @@ public class KeyRingUtils {
      * @return user's name at [0] and user's email at [1]
      * @throws BadUserIdFormat
      */
-    private String[] getUserCredentialsFromId(String userId) throws BadUserIdFormat {
+    public String[] getUserCredentialsFromId(String userId) throws BadUserIdFormat {
         String[] retVal = userId.split("__");
 
         if(retVal.length != 2){
@@ -160,10 +172,12 @@ public class KeyRingUtils {
         return String.format("%s_%d.txt", userId, Instant.now().hashCode());
     }
 
+    @Deprecated
     private String generateSecretKeyRingCollectionFileName(String userId) {
         return String.format("%s-secret-key-ring-collection.txt", userId);
     }
 
+    @Deprecated
     private String generatePublicKeyRingCollectionFileName(String userId) {
         return String.format("%s-public-key-ring-collection.txt", userId);
     }
