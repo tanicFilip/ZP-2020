@@ -10,6 +10,7 @@ import org.bouncycastle.openpgp.operator.jcajce.JcaPGPDigestCalculatorProviderBu
 import org.bouncycastle.openpgp.operator.jcajce.JcePBESecretKeyEncryptorBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pgp.exceptions.BadUserIdFormat;
 import pgp.exceptions.PublicKeyDoesNotExistException;
 
 import java.io.*;
@@ -42,9 +43,9 @@ public class KeyRingUtils {
 
     }
 
-    public PGPPublicKeyRingCollection readPublicKeyRingCollectionFromFile(String email) throws IOException, PGPException {
+    public PGPPublicKeyRingCollection readPublicKeyRingCollectionFromFile(String userId) throws IOException, PGPException {
 
-        File file = new File(generatePublicKeyRingCollectionFileName(email));
+        File file = new File(generatePublicKeyRingCollectionFileName(userId));
         if (!file.exists()) {
             return generateEmptyPublicKeyRingCollection();
         }
@@ -59,7 +60,7 @@ public class KeyRingUtils {
     }
 
     // Generates KeyRingPair - adds SecretKeyRing to current users secret key ring file, and creates public key ring file
-    public void addKeyPairToKeyRings(String email, String password, PGPKeyPair pgpKeyPair) throws PGPException, IOException {
+    public void addKeyPairToKeyRings(String userId, String password, PGPKeyPair pgpKeyPair) throws PGPException, IOException {
 
         var sha1Calculator = new JcaPGPDigestCalculatorProviderBuilder()
                 .build()
@@ -79,7 +80,7 @@ public class KeyRingUtils {
                 new PGPKeyRingGenerator(
                         PGPSignature.POSITIVE_CERTIFICATION,
                         pgpKeyPair,
-                        email,
+                        userId,
                         sha1Calculator,
                         null,
                         null,
@@ -88,19 +89,19 @@ public class KeyRingUtils {
                 );
 
         // Generated public key store to a separate file that can later be exchanged between users
-        DataWriteUtils.writeBytesToFile(keyRingGenerator.generatePublicKeyRing().getEncoded(), generatePublicKeyRingFileName(email));
+        DataWriteUtils.writeBytesToFile(keyRingGenerator.generatePublicKeyRing().getEncoded(), generatePublicKeyRingFileName(userId));
 
         // Genereate secret key, add it to current private key ring
-        var keyRingCollection = readSecretKeyRingCollectionFromFile(generateSecretKeyRingCollectionFileName(email));
+        var keyRingCollection = readSecretKeyRingCollectionFromFile(generateSecretKeyRingCollectionFileName(userId));
         var secretKeyRing = keyRingGenerator.generateSecretKeyRing();
         keyRingCollection = PGPSecretKeyRingCollection.addSecretKeyRing(keyRingCollection, secretKeyRing);
-        DataWriteUtils.writeBytesToFile(keyRingCollection.getEncoded(), generateSecretKeyRingCollectionFileName(email));
+        DataWriteUtils.writeBytesToFile(keyRingCollection.getEncoded(), generateSecretKeyRingCollectionFileName(userId));
     }
 
     // Adds public key ring from file to users public key ring collection
-    public void addPublicKeyToPublicKeyRingCollection(String email, String publicKeyFileName) throws IOException, PGPException {
+    public void addPublicKeyToPublicKeyRingCollection(String userId, String publicKeyFileName) throws IOException, PGPException {
         PGPPublicKeyRing publicKey = readPublicKeyRingFromFile(publicKeyFileName);
-        PGPPublicKeyRingCollection publicKeyRings = readPublicKeyRingCollectionFromFile(email);
+        PGPPublicKeyRingCollection publicKeyRings = readPublicKeyRingCollectionFromFile(userId);
 
         try {
             publicKeyRings = PGPPublicKeyRingCollection.addPublicKeyRing(publicKeyRings, publicKey);
@@ -108,7 +109,7 @@ public class KeyRingUtils {
             logger.error("{} Key is skipped", e.getMessage());
         }
 
-        DataWriteUtils.writeBytesToFile(publicKeyRings.getEncoded(), generatePublicKeyRingCollectionFileName(email));
+        DataWriteUtils.writeBytesToFile(publicKeyRings.getEncoded(), generatePublicKeyRingCollectionFileName(userId));
     }
 
 
@@ -127,16 +128,43 @@ public class KeyRingUtils {
         throw new PublicKeyDoesNotExistException();
     }
 
-
-    private String generatePublicKeyRingFileName(String email) {
-        return String.format("%s_%d.txt", email, Instant.now().hashCode());
+    /**
+     * Encodes user's name and email into a single String
+     *
+     * @param name
+     * @param email
+     * @return userId String
+     */
+    private String generateUserId(String name, String email){
+        return String.format("%s__%s", name, email);
     }
 
-    private String generateSecretKeyRingCollectionFileName(String email) {
-        return String.format("%s-secret-key-ring-collection.txt", email);
+    /**
+     * Decodes user's Id into name and email Strings
+     *
+     * @param userId
+     * @return user's name at [0] and user's email at [1]
+     * @throws BadUserIdFormat
+     */
+    private String[] getUserCredentialsFromId(String userId) throws BadUserIdFormat {
+        String[] retVal = userId.split("__");
+
+        if(retVal.length != 2){
+            throw new BadUserIdFormat("User id " + userId + " is in incorrect format");
+        }
+
+        return retVal;
     }
 
-    private String generatePublicKeyRingCollectionFileName(String email) {
-        return String.format("%s-public-key-ring-collection.txt", email);
+    private String generatePublicKeyRingFileName(String userId) {
+        return String.format("%s_%d.txt", userId, Instant.now().hashCode());
+    }
+
+    private String generateSecretKeyRingCollectionFileName(String userId) {
+        return String.format("%s-secret-key-ring-collection.txt", userId);
+    }
+
+    private String generatePublicKeyRingCollectionFileName(String userId) {
+        return String.format("%s-public-key-ring-collection.txt", userId);
     }
 }
