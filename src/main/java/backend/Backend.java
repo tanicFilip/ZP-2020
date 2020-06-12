@@ -129,8 +129,23 @@ public class Backend {
         return false;
     }
 
-    public void removeKeyPair(){
+    // TO DO: Detect if key is public or secret and remove accordingly!!!
+    public boolean removeKeyPair(String name, String email, String password, byte[] masterPublicKeyFingerprint){
+        try {
+            keyRingUtils.removeKeyRingFromSecretKeyRingCollection(
+                    keyRingUtils.generateUserId(name, email),
+                    password,
+                    masterPublicKeyFingerprint
+            );
 
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (PGPException e) {
+            e.printStackTrace();
+        }
+
+        return false;
     }
 
     public static void main(String[] args) {

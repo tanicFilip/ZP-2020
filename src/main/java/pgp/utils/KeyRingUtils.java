@@ -7,6 +7,7 @@ import org.bouncycastle.openpgp.bc.BcPGPPublicKeyRingCollection;
 import org.bouncycastle.openpgp.bc.BcPGPSecretKeyRingCollection;
 import org.bouncycastle.openpgp.operator.jcajce.JcaPGPContentSignerBuilder;
 import org.bouncycastle.openpgp.operator.jcajce.JcaPGPDigestCalculatorProviderBuilder;
+import org.bouncycastle.openpgp.operator.jcajce.JcePBESecretKeyDecryptorBuilder;
 import org.bouncycastle.openpgp.operator.jcajce.JcePBESecretKeyEncryptorBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,7 +71,7 @@ public class KeyRingUtils {
     // Generates KeyRingPair - adds SecretKeyRing to current users secret key ring file, and creates public key ring file
     public void addKeyPairToKeyRings(
             String userId, String password, PGPKeyPair pgpKeyPairMaster, PGPKeyPair pgpKeyPairSubkey
-    )throws PGPException, IOException {
+    ) throws PGPException, IOException {
 
         var sha1Calculator = new JcaPGPDigestCalculatorProviderBuilder()
                 .build()
@@ -109,6 +110,59 @@ public class KeyRingUtils {
         var secretKeyRing = keyRingGenerator.generateSecretKeyRing();
         keyRingCollection = PGPSecretKeyRingCollection.addSecretKeyRing(keyRingCollection, secretKeyRing);
         DataWriteUtils.writeBytesToFile(keyRingCollection.getEncoded(), secretKeyRingCollectionFilename);
+    }
+
+
+    public void removeKeyRingFromSecretKeyRingCollection(
+            String userId, String password, byte[] masterPublicKeyFingerprint
+    ) throws IOException, PGPException {
+        var secretKeyRingCollection = readSecretKeyRingCollectionFromFile();
+        var iterator = secretKeyRingCollection.getKeyRings();
+
+        var sha1CalculatorProvider = new JcaPGPDigestCalculatorProviderBuilder()
+                .build();
+
+        var pbeSecretKeyDecryptor =  new JcePBESecretKeyDecryptorBuilder(sha1CalculatorProvider)
+                .setProvider("BC")
+                .build(password.toCharArray());
+
+        boolean found = false;
+        PGPSecretKeyRing target = null;
+
+        while(iterator.hasNext()){
+            var keyRing = iterator.next();
+
+            try {
+                if(keyRing.getPublicKey().getUserIDs().next().equals(userId)){
+                    boolean matchingFingerprint = true;
+                    for (int i = 0; i < masterPublicKeyFingerprint.length; i++) {
+                        if(keyRing.getPublicKey().getFingerprint()[i] != masterPublicKeyFingerprint[i]){
+                            matchingFingerprint = false;
+                            break;
+                        }
+                    }
+                    if(matchingFingerprint){
+                        keyRing.getSecretKey().extractPrivateKey(pbeSecretKeyDecryptor);
+                        target = keyRing;
+                        break;
+                    }
+                }
+
+            } catch (Exception e) {
+                //throw new PGPException("No private key available using passphrase", e);
+            }
+        }
+        if(target != null){
+            secretKeyRingCollection = PGPSecretKeyRingCollection.removeSecretKeyRing(secretKeyRingCollection, target);
+            DataWriteUtils.writeBytesToFile(secretKeyRingCollection.getEncoded(), secretKeyRingCollectionFilename);
+        }
+        else{
+            throw new PGPException("No private key available using passphrase");
+        }
+    }
+
+    public void removeKeyRingFromPublicKeyRingCollection(String userId){
+
     }
 
     // Adds public key ring from file to users public key ring collection

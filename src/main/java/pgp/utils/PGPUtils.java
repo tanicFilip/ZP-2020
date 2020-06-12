@@ -77,8 +77,10 @@ public class PGPUtils {
         KeyPairGenerator kpg = KeyPairGenerator.getInstance(algorithm);
         kpg.initialize(keySize, new SecureRandom());
         KeyPair keyPair = kpg.generateKeyPair();
-        return new JcaPGPKeyPair(algorithmTag, keyPair, new Date());
-
+        Date dateExpires = new Date();
+        // two years worth of seconds added
+        dateExpires.setTime(dateExpires.getTime() + 2 * 31536000000l);
+        return new JcaPGPKeyPair(algorithmTag, keyPair, dateExpires);
     }
 
     private static JcaPGPContentSignerBuilder getJcaPGPContentSignerBuilder() {

@@ -1,17 +1,16 @@
 package controller;
 
 import backend.Backend;
+import gui.GUI;
 import gui.GenerateKeyStage;
 import gui.KeyRingHumanFormat;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.Event;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.TableView;
 import javafx.stage.Stage;
-import org.bouncycastle.openpgp.PGPPublicKeyRingCollection;
+import org.bouncycastle.util.encoders.Base64;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -83,14 +82,14 @@ public class Controller {
             );
             newKeyRingHumanFormat.setDateExpires(dateExpires);
 
-            newKeyRingHumanFormat.setKeyFingerprint(keyRing.getPublicKey().getFingerprint());
+            newKeyRingHumanFormat.setMasterPublicKeyFingerprint(
+                    Base64.toBase64String(keyRing.getPublicKey().getFingerprint())
+            );
 
             keyRings.add(newKeyRingHumanFormat);
         }
 
-        System.out.println(keyRings.get(0));
-
-        return null;
+        return FXCollections.observableList(keyRings);
     }
 
     public static void generateKeyPair(String name, String email, String password, int keySizeDSA, int keySizeELGAMAL){
@@ -98,14 +97,30 @@ public class Controller {
         if(Backend.getInstance().generateKeyPair(name, email, password, keySizeDSA, keySizeELGAMAL)){
             generateKeyStage.alertInfo("Sucess!");
             generateKeyStage.close();
+
+            GUI.getInstance().updateInfo();
         }
         else{
             generateKeyStage.alertInfo("Failed!");
         }
     }
 
-    public static void deleteKeyPair(String name, String email, String password){
-        // To Do: Implement a call to some method from pgp package that generates a new key pair
+    public static void deleteKeyPair(KeyRingHumanFormat keyRingHumanFormat, String password){
+        byte[] masterPublicKeyFingerprint = Base64.decode(keyRingHumanFormat.getMasterPublicKeyFingerprint());
+
+        if(Backend.getInstance().removeKeyPair(
+                keyRingHumanFormat.getName(),
+                keyRingHumanFormat.getEmail(),
+                password,
+                masterPublicKeyFingerprint
+        )){
+            GUI.getInstance().alertInfo("Sucess!");
+
+            GUI.getInstance().updateInfo();
+        }
+        else{
+            GUI.getInstance().alertInfo("Failed!");
+        }
     }
 
 }
