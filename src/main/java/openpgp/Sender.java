@@ -1,24 +1,20 @@
-package pgp;
+package openpgp;
 
+import openpgp.pgp.KeyRingManager;
+import openpgp.pgp.PGP;
+import openpgp.pgp.impl.KeyRingManagerImpl;
+import openpgp.pgp.impl.PGPImpl;
 import org.apache.log4j.BasicConfigurator;
-import org.bouncycastle.bcpg.ArmoredOutputStream;
-import org.bouncycastle.bcpg.CompressionAlgorithmTags;
 import org.bouncycastle.bcpg.PublicKeyAlgorithmTags;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openpgp.*;
-import org.bouncycastle.openpgp.bc.BcPGPSecretKeyRingCollection;
-import org.bouncycastle.openpgp.operator.jcajce.JcePBEKeyEncryptionMethodGenerator;
-import org.bouncycastle.openpgp.operator.jcajce.JcePGPDataEncryptorBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pgp.utils.DataReadUtils;
-import pgp.utils.DataWriteUtils;
-import pgp.utils.KeyRingUtils;
-import pgp.utils.PGPUtils;
+import openpgp.exceptions.PublicKeyRingDoesNotContainElGamalKey;
+import openpgp.utils.*;
 
 import java.io.*;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.security.Security;
 
 public class Sender {
@@ -37,8 +33,9 @@ public class Sender {
     public static final String DSA = "DSA";
     public static final int keySize = 1024;
 
-    public static PGPUtils pgpUtils = new PGPUtils();
-    public static KeyRingUtils keyRingUtils = new KeyRingUtils("", "");
+    public static PGP pgp = new PGPImpl();
+    public static KeyRingManager senderKeyRingManager = new KeyRingManagerImpl(ConstantAndNamingUtils.SENDER_SECRET_KEY_RING, ConstantAndNamingUtils.SENDER_PUBLIC_KEY_RING);
+    public static KeyRingManager receiverLeyRingManager = new KeyRingManagerImpl(ConstantAndNamingUtils.RECEIVER_SECRET_KEY_RING, ConstantAndNamingUtils.RECEIVER_PUBLIC_KEY_RING);
 
 
     public static void configureLogging(){
@@ -49,16 +46,24 @@ public class Sender {
         Security.addProvider(new BouncyCastleProvider());
     }
 
-    public static void main(String[] args) throws IOException, PGPException, NoSuchAlgorithmException {
-        /*initSecurityProvider();
+    public static void main(String[] args) throws IOException, PGPException, NoSuchAlgorithmException, PublicKeyRingDoesNotContainElGamalKey {
+        initSecurityProvider();
         configureLogging();
 
+
+        PGPKeyPair elgamalKeyPair = pgp.generateKeyPair("ELGAMAL", PublicKeyAlgorithmTags.ELGAMAL_GENERAL, keySize);
+        long elgamalKeyId = elgamalKeyPair.getKeyID();
+        KeyRingManagerImpl receiverKRU = new KeyRingManagerImpl(ConstantAndNamingUtils.RECEIVER_SECRET_KEY_RING, ConstantAndNamingUtils.RECEIVER_PUBLIC_KEY_RING);
+        receiverKRU.addElGamalKeyPairToKeyRings("MarkoReceiver", "password", elgamalKeyPair);
+        logger.info("Generated receivers elgamal key pair");
+
+
         logger.info("Generate new key pair...");
-        PGPKeyPair keyPair = pgpUtils.generateKeyPair(DSA, PublicKeyAlgorithmTags.DSA, keySize);
+        PGPKeyPair keyPair = pgp.generateKeyPair(DSA, PublicKeyAlgorithmTags.DSA, keySize);
         logger.info("Generated new key pair.");
 
         logger.info("Add keypair to keyring collection...");
-        keyRingUtils.addKeyPairToKeyRings(email, password, keyPair);
+        senderKeyRingManager.addMasterKeyPairToKeyRings(email, password, keyPair);
         logger.info("Saved new keyring collection to file.");
 
         logger.info("Start reading message from file {}...", inputFileName);
@@ -66,7 +71,7 @@ public class Sender {
         logger.info("Read message from {} to byte array.", inputFileName);
 
         logger.info("Signing the message...");
-        byte[] signedMessage = pgpUtils.signMessage(message, keyPair);
+        byte[] signedMessage = pgp.signMessage(message, keyPair);
         logger.info("Message signed.");
 
         logger.info("Save signed message to file {}...", outputFileName);
@@ -74,8 +79,10 @@ public class Sender {
         logger.info("Saved signed message to file {}.", outputFileName);
 
         logger.info("Encrypting message...");
-        pgpUtils.encryptMessage(outputFileName, encodedOutputFileName, password, false);
+        PGPPublicKeyRingCollection egKeyRingCollection = senderKeyRingManager.readPublicKeyRingCollection();
+
+        pgp.encryptMessage(outputFileName, encodedOutputFileName, false, egKeyRingCollection.getKeyRings().next());
         logger.info("Message encrypted.");
-        */
+
     }
 }

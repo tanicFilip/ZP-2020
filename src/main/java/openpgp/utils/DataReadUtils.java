@@ -1,9 +1,7 @@
-package pgp.utils;
+package openpgp.utils;
 
-import org.bouncycastle.bcpg.BCPGInputStream;
 import org.bouncycastle.openpgp.*;
 import org.bouncycastle.openpgp.bc.BcPGPObjectFactory;
-import org.bouncycastle.openpgp.jcajce.JcaPGPObjectFactory;
 import org.bouncycastle.util.io.Streams;
 
 import java.io.*;

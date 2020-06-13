@@ -1,23 +1,20 @@
 package backend;
 
+import openpgp.pgp.impl.KeyRingManagerImpl;
+import openpgp.pgp.impl.PGPImpl;
 import org.apache.log4j.BasicConfigurator;
-import org.bouncycastle.bcpg.HashAlgorithmTags;
 import org.bouncycastle.bcpg.PublicKeyAlgorithmTags;
-import org.bouncycastle.bcpg.SymmetricKeyEncSessionPacket;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import org.bouncycastle.openpgp.*;
-import org.bouncycastle.openpgp.operator.jcajce.JcaPGPKeyPair;
-import pgp.utils.*;
 
-import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Security;
 
 public class Backend {
 
-    private static String SECRET_FILENAME = "./data/secret_keys_collection.pgp";
-    private static String PUBLIC_FILENAME = "./data/public_keys_collection.pgp";
+    public static String SECRET_FILENAME = "./data/secret_keys_collection.pgp";
+    public static String PUBLIC_FILENAME = "./data/public_keys_collection.pgp";
 
     public static enum ASYMMETRIC {
         DSA , ELGAMAL
@@ -30,8 +27,8 @@ public class Backend {
 
     private static Backend instance;
 
-    private PGPUtils pgpUtils = new PGPUtils();
-    private KeyRingUtils keyRingUtils = new KeyRingUtils(SECRET_FILENAME, PUBLIC_FILENAME);
+    private PGPImpl pgpImpl = new PGPImpl();
+    private KeyRingManagerImpl keyRingManagerImpl = new KeyRingManagerImpl(SECRET_FILENAME, PUBLIC_FILENAME);
 
     private PGPSecretKeyRingCollection secretKeyRingCollection;
     private PGPPublicKeyRingCollection publicKeyRingCollection;
@@ -64,7 +61,7 @@ public class Backend {
      */
     public PGPSecretKeyRingCollection getSecretKeyRingCollection() {
         try {
-            return keyRingUtils.readSecretKeyRingCollectionFromFile();
+            return keyRingManagerImpl.readSecretKeyRingCollection();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -79,7 +76,7 @@ public class Backend {
      */
     public PGPPublicKeyRingCollection getPublicKeyRingCollection() {
         try {
-            return keyRingUtils.readPublicKeyRingCollectionFromFile();
+            return keyRingManagerImpl.readPublicKeyRingCollection();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -102,29 +99,28 @@ public class Backend {
 
     public boolean generateKeyPair(String name, String email, String password, int keySizeDSA, int keySizeELGAMAL){
         try {
-            PGPKeyPair keyPairDSA = pgpUtils.generateKeyPair(
+            PGPKeyPair keyPairDSA = pgpImpl.generateKeyPair(
                     "DSA",
                     PublicKeyAlgorithmTags.DSA,
                     keySizeDSA
             );
 
-            PGPKeyPair keyPairELGAMAL = pgpUtils.generateKeyPair(
+            PGPKeyPair keyPairELGAMAL = pgpImpl.generateKeyPair(
                     "ELGAMAL",
                     PublicKeyAlgorithmTags.ELGAMAL_ENCRYPT,
                     keySizeELGAMAL
             );
 
-            keyRingUtils.addKeyPairToKeyRings(keyRingUtils.generateUserId(name, email), password, keyPairDSA, keyPairELGAMAL);
+            //keyRingUtils.addKeyPairToKeyRings(keyRingUtils.generateUserId(name, email), password, keyPairDSA, keyPairELGAMAL);
 
             return true;
 
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (PGPException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (NoSuchAlgorithmException | PGPException e) {
             e.printStackTrace();
         }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
         return false;
     }

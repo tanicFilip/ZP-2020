@@ -1,5 +1,6 @@
-package pgp.utils;
+package openpgp.pgp.impl;
 
+import openpgp.pgp.PGP;
 import org.apache.commons.lang3.ArrayUtils;
 import org.bouncycastle.bcpg.*;
 import org.bouncycastle.openpgp.*;
@@ -10,9 +11,9 @@ import org.bouncycastle.openpgp.operator.jcajce.*;
 import org.bouncycastle.util.io.Streams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pgp.Sender;
-import pgp.exceptions.BadMessageException;
-import pgp.exceptions.InvalidSignatureException;
+import openpgp.exceptions.BadMessageException;
+import openpgp.exceptions.InvalidSignatureException;
+import openpgp.exceptions.PublicKeyRingDoesNotContainElGamalKey;
 
 import java.io.*;
 import java.security.*;
@@ -20,11 +21,22 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Objects;
 
-public class PGPUtils {
+public class PGPImpl implements PGP {
 
-    private static final Logger logger = LoggerFactory.getLogger(PGPUtils.class);
     public static final String BC_PROVIDER = "BC";
 
+    // generates key pair
+    @Override
+    public PGPKeyPair generateKeyPair(String algorithm, int algorithmTag, int keySize) throws NoSuchAlgorithmException, PGPException {
+
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance(algorithm);
+        kpg.initialize(keySize, new SecureRandom());
+        KeyPair keyPair = kpg.generateKeyPair();
+        return new JcaPGPKeyPair(algorithmTag, keyPair, new Date());
+
+    }
+
+    @Override
     public byte[] signMessage(byte[] data, PGPKeyPair pgpKeyPair) throws PGPException, IOException {
         // Byte out stream - will contain signed data
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -69,26 +81,7 @@ public class PGPUtils {
         return byteArrayOutputStream.toByteArray();
     }
 
-
-    // generates key pair
-    public PGPKeyPair generateKeyPair(String algorithm, int algorithmTag, int keySize)
-            throws NoSuchAlgorithmException, PGPException {
-
-        KeyPairGenerator kpg = KeyPairGenerator.getInstance(algorithm);
-        kpg.initialize(keySize, new SecureRandom());
-        KeyPair keyPair = kpg.generateKeyPair();
-        return new JcaPGPKeyPair(algorithmTag, keyPair, new Date());
-
-    }
-
-    private static JcaPGPContentSignerBuilder getJcaPGPContentSignerBuilder() {
-        JcaPGPContentSignerBuilder jcaPGPContentSignerBuilder
-                = new JcaPGPContentSignerBuilder(PublicKeyAlgorithmTags.DSA, HashAlgorithmTags.SHA1);
-        jcaPGPContentSignerBuilder.setProvider(BC_PROVIDER);
-        return jcaPGPContentSignerBuilder;
-    }
-
-    // TODO - needs some refactoring, al me jako mrzi sad
+    @Override
     public byte[] readSignedMessage(byte[] signedMessage, PGPPublicKey publicKey) throws Exception {
         PGPObjectFactory jcaPGPObjectFactory = new BcPGPObjectFactory(signedMessage);
         PGPOnePassSignatureList pgpOnePassSignatureList = (PGPOnePassSignatureList) jcaPGPObjectFactory.nextObject();
@@ -122,32 +115,11 @@ public class PGPUtils {
         Byte[] returnMessage = new Byte[message.size()];
         message.toArray(returnMessage);
         return ArrayUtils.toPrimitive(returnMessage);
-
     }
 
-    public byte[] compressData(String fileName) throws IOException {
-        ByteArrayOutputStream bOut = new ByteArrayOutputStream();
-        PGPCompressedDataGenerator comData = null;
-
-        comData = new PGPCompressedDataGenerator(CompressionAlgorithmTags.ZIP);
-
-        PGPUtil.writeFileToLiteralData(comData.open(bOut), PGPLiteralData.BINARY, new File(fileName));
-
-        comData.close();
-
-        return bOut.toByteArray();
-    }
-
-    public byte[] convertToLiteralData(String fileName) throws IOException {
-        ByteArrayOutputStream bOut = new ByteArrayOutputStream();
-
-        PGPUtil.writeFileToLiteralData(bOut, PGPLiteralData.BINARY, new File(fileName));
-
-        return bOut.toByteArray();
-    }
-
-    public void encryptMessage(String sourceFileName, String encryptedFileName, String password, boolean shouldZIP)
-            throws IOException, PGPException {
+    @Override
+    public void encryptMessage(String sourceFileName, String encryptedFileName, boolean shouldZIP, PGPPublicKeyRing receiverPublicKey)
+            throws IOException, PGPException, PublicKeyRingDoesNotContainElGamalKey {
 
         OutputStream outputStream = new ArmoredOutputStream(new FileOutputStream(encryptedFileName));
         byte[] data;
@@ -157,10 +129,24 @@ public class PGPUtils {
         else
             data = convertToLiteralData(sourceFileName);
 
-        PGPEncryptedDataGenerator encGen = new PGPEncryptedDataGenerator(new JcePGPDataEncryptorBuilder(PGPEncryptedData.AES_128)
+        // TODO = AES alg should not be fixed, but rather passed, also consider using Encrypt DTO instead of all these params
+        PGPEncryptedDataGenerator encGen = new PGPEncryptedDataGenerator(new JcePGPDataEncryptorBuilder(PGPEncryptedData.TRIPLE_DES)
                 .setWithIntegrityPacket(true).setSecureRandom(new SecureRandom()).setProvider("BC"));
 
-        encGen.addMethod(new JcePBEKeyEncryptionMethodGenerator(password.toCharArray()).setProvider("BC"));
+        var iterator = receiverPublicKey.getPublicKeys();
+        PGPPublicKey elGamalKey = null;
+        while(iterator.hasNext()){
+            PGPPublicKey item = iterator.next();
+            if(item.isEncryptionKey()){
+                elGamalKey = item;
+                break;
+            }
+        }
+        if(Objects.isNull(elGamalKey))
+            throw new PublicKeyRingDoesNotContainElGamalKey();
+
+
+        encGen.addMethod(new JcePublicKeyKeyEncryptionMethodGenerator(elGamalKey).setProvider("BC"));
 
         OutputStream encOut = encGen.open(outputStream, data.length);
         encOut.write(data);
@@ -170,7 +156,8 @@ public class PGPUtils {
         outputStream.close();
     }
 
-    public void readEncryptedFile(String outputFileName, String receivedFileName, String password)
+    @Override
+    public void readEncryptedFile(String outputFileName, String receivedFileName, PGPPrivateKey pgpPrivateKey)
             throws IOException, PGPException, BadMessageException {
         InputStream bufferedInputStream = null;
         OutputStream fOut = null;
@@ -190,13 +177,11 @@ public class PGPUtils {
                 pgpEncryptedDataList = (PGPEncryptedDataList) pgpObjectFactory.nextObject();
             }
 
-            var pgpPbeEncryptedData = (PGPPBEEncryptedData) pgpEncryptedDataList.get(0);
+            var pgpPbeEncryptedData = (PGPPublicKeyEncryptedData) pgpEncryptedDataList.get(0);
 
             // decrypted stream
             InputStream clear = pgpPbeEncryptedData.getDataStream(
-                    new JcePBEDataDecryptorFactoryBuilder(
-                            new JcaPGPDigestCalculatorProviderBuilder().setProvider("BC").build()).setProvider("BC").build(password.toCharArray()
-                    )
+                    new JcePublicKeyDataDecryptorFactoryBuilder().build(pgpPrivateKey)
             );
 
             JcaPGPObjectFactory pgpFact = new JcaPGPObjectFactory(clear);
@@ -204,16 +189,14 @@ public class PGPUtils {
             // file may not have been compressed
             nextObject = pgpFact.nextObject();
             if (nextObject instanceof PGPCompressedData) {
-                PGPCompressedData cData = (PGPCompressedData) nextObject;
-
-                pgpFact = new JcaPGPObjectFactory(cData.getDataStream());
-
+                var compressedData = (PGPCompressedData) nextObject;
+                pgpFact = new JcaPGPObjectFactory(compressedData.getDataStream());
                 nextObject = pgpFact.nextObject();
             }
 
 
-            PGPLiteralData ld = (PGPLiteralData) nextObject;
-            InputStream unc = ld.getInputStream();
+            PGPLiteralData pgpLiteralData = (PGPLiteralData) nextObject;
+            InputStream unc = pgpLiteralData.getInputStream();
 
             fOut = new BufferedOutputStream(new FileOutputStream(outputFileName));
 
@@ -228,6 +211,35 @@ public class PGPUtils {
             if(Objects.nonNull(bufferedInputStream))
                 bufferedInputStream.close();
         }
+    }
+
+    // signing helper methods
+    private static JcaPGPContentSignerBuilder getJcaPGPContentSignerBuilder() {
+        JcaPGPContentSignerBuilder jcaPGPContentSignerBuilder
+                = new JcaPGPContentSignerBuilder(PublicKeyAlgorithmTags.DSA, HashAlgorithmTags.SHA1);
+        jcaPGPContentSignerBuilder.setProvider(BC_PROVIDER);
+        return jcaPGPContentSignerBuilder;
+    }
+
+    // encryption helper methods
+    private byte[] compressData(String fileName) throws IOException {
+        ByteArrayOutputStream bOut = new ByteArrayOutputStream();
+
+        var compressedDataGenerator = new PGPCompressedDataGenerator(CompressionAlgorithmTags.ZIP);
+
+        PGPUtil.writeFileToLiteralData(compressedDataGenerator.open(bOut), PGPLiteralData.BINARY, new File(fileName));
+
+        compressedDataGenerator.close();
+
+        return bOut.toByteArray();
+    }
+
+    private byte[] convertToLiteralData(String fileName) throws IOException {
+        ByteArrayOutputStream bOut = new ByteArrayOutputStream();
+
+        PGPUtil.writeFileToLiteralData(bOut, PGPLiteralData.BINARY, new File(fileName));
+
+        return bOut.toByteArray();
     }
 
 

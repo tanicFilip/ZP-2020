@@ -1,4 +1,4 @@
-package pgp.exceptions;
+package openpgp.exceptions;
 
 public class BadMessageException extends Exception {
 }

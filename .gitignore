@@ -10,6 +10,7 @@
 # Keyring and asc files
 .gpg
 .asc
+.pgp
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
