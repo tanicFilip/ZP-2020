@@ -1,6 +1,5 @@
 package gui;
 
-import java.util.Arrays;
 import java.util.Date;
 
 public class KeyRingHumanFormat {
@@ -9,17 +8,17 @@ public class KeyRingHumanFormat {
     private String email;
     private Date dateCreated;
     private Date dateExpires;
-    private byte[] keyFingerprint;
+    private String masterPublicKeyFingerprint;
 
     public KeyRingHumanFormat() {
     }
 
-    public KeyRingHumanFormat(String name, String email, Date dateCreated, Date dateExpires, byte[] keyFingerprint) {
+    public KeyRingHumanFormat(String name, String email, Date dateCreated, Date dateExpires, String masterPublicKeyFingerprint) {
         this.name = name;
         this.email = email;
         this.dateCreated = dateCreated;
         this.dateExpires = dateExpires;
-        this.keyFingerprint = keyFingerprint;
+        this.masterPublicKeyFingerprint = masterPublicKeyFingerprint;
     }
 
     public String getName() {
@@ -54,12 +53,12 @@ public class KeyRingHumanFormat {
         this.dateExpires = dateExpires;
     }
 
-    public byte[] getKeyFingerprint() {
-        return keyFingerprint;
+    public String getMasterPublicKeyFingerprint() {
+        return masterPublicKeyFingerprint;
     }
 
-    public void setKeyFingerprint(byte[] keyFingerprint) {
-        this.keyFingerprint = keyFingerprint;
+    public void setMasterPublicKeyFingerprint(String masterPublicKeyFingerprint) {
+        this.masterPublicKeyFingerprint = masterPublicKeyFingerprint;
     }
 
     @Override
@@ -69,7 +68,7 @@ public class KeyRingHumanFormat {
                 ", email='" + email + '\'' +
                 ", dateCreated=" + dateCreated +
                 ", dateExpires=" + dateExpires +
-                ", keyFingerprint=" + Arrays.toString(keyFingerprint) +
+                ", keyFingerprint=" + masterPublicKeyFingerprint +
                 '}';
     }
 

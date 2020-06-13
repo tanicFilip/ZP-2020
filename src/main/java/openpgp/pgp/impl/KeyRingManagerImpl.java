@@ -13,6 +13,7 @@ import org.bouncycastle.openpgp.bc.BcPGPSecretKeyRing;
 import org.bouncycastle.openpgp.bc.BcPGPSecretKeyRingCollection;
 import org.bouncycastle.openpgp.operator.jcajce.JcaPGPContentSignerBuilder;
 import org.bouncycastle.openpgp.operator.jcajce.JcaPGPDigestCalculatorProviderBuilder;
+import org.bouncycastle.openpgp.operator.jcajce.JcePBESecretKeyDecryptorBuilder;
 import org.bouncycastle.openpgp.operator.jcajce.JcePBESecretKeyEncryptorBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -170,6 +171,60 @@ public class KeyRingManagerImpl implements KeyRingManager {
     }
     // end
 
+    // key removal
+    @Override
+    public void removeKeyRingFromSecretKeyRingCollection(
+            String userId, String password, byte[] masterPublicKeyFingerprint
+    ) throws IOException, PGPException {
+        var secretKeyRingCollection = readSecretKeyRingCollection();
+        var iterator = secretKeyRingCollection.getKeyRings();
+
+        var sha1CalculatorProvider = new JcaPGPDigestCalculatorProviderBuilder()
+                .build();
+
+        var pbeSecretKeyDecryptor =  new JcePBESecretKeyDecryptorBuilder(sha1CalculatorProvider)
+                .setProvider("BC")
+                .build(password.toCharArray());
+
+        boolean found = false;
+        PGPSecretKeyRing target = null;
+
+        while(iterator.hasNext()){
+            var keyRing = iterator.next();
+
+            try {
+                if(keyRing.getPublicKey().getUserIDs().next().equals(userId)){
+                    boolean matchingFingerprint = true;
+                    for (int i = 0; i < masterPublicKeyFingerprint.length; i++) {
+                        if(keyRing.getPublicKey().getFingerprint()[i] != masterPublicKeyFingerprint[i]){
+                            matchingFingerprint = false;
+                            break;
+                        }
+                    }
+                    if(matchingFingerprint){
+                        keyRing.getSecretKey().extractPrivateKey(pbeSecretKeyDecryptor);
+                        target = keyRing;
+                        break;
+                    }
+                }
+
+            } catch (Exception e) {
+                //throw new PGPException("No private key available using passphrase", e);
+            }
+        }
+        if(target != null){
+            secretKeyRingCollection = PGPSecretKeyRingCollection.removeSecretKeyRing(secretKeyRingCollection, target);
+            DataWriteUtils.writeBytesToFile(secretKeyRingCollection.getEncoded(), secretKeyRingCollectionFilename);
+        }
+        else{
+            throw new PGPException("No private key available using passphrase");
+        }
+    }
+
+    @Override
+    public void removeKeyRingFromPublicKeyRingCollection(String userId){
+
+    }
 
     public PGPSecretKeyRingCollection generateEmptySecretKeyRingCollection() throws IOException, PGPException {
         InputStream inputStream = PGPUtil.getDecoderStream(InputStream.nullInputStream());

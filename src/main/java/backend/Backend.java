@@ -1,13 +1,17 @@
 package backend;
 
+import openpgp.pgp.KeyRingManager;
+import openpgp.pgp.PGP;
 import openpgp.pgp.impl.KeyRingManagerImpl;
 import openpgp.pgp.impl.PGPImpl;
+import openpgp.utils.ConstantAndNamingUtils;
 import org.apache.log4j.BasicConfigurator;
 import org.bouncycastle.bcpg.PublicKeyAlgorithmTags;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import org.bouncycastle.openpgp.*;
 
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Security;
 
@@ -27,8 +31,8 @@ public class Backend {
 
     private static Backend instance;
 
-    private PGPImpl pgpImpl = new PGPImpl();
-    private KeyRingManagerImpl keyRingManagerImpl = new KeyRingManagerImpl(SECRET_FILENAME, PUBLIC_FILENAME);
+    private PGP pgpImpl = new PGPImpl();
+    private KeyRingManager keyRingManagerImpl = new KeyRingManagerImpl(SECRET_FILENAME, PUBLIC_FILENAME);
 
     private PGPSecretKeyRingCollection secretKeyRingCollection;
     private PGPPublicKeyRingCollection publicKeyRingCollection;
@@ -125,8 +129,21 @@ public class Backend {
         return false;
     }
 
-    public void removeKeyPair(){
+    // TO DO: Detect if key is public or secret and remove accordingly!!!
+    public boolean removeKeyPair(String name, String email, String password, byte[] masterPublicKeyFingerprint){
+        try {
+            keyRingManagerImpl.removeKeyRingFromSecretKeyRingCollection(
+                    ConstantAndNamingUtils.generateUserId(name, email),
+                    password,
+                    masterPublicKeyFingerprint
+            );
 
+            return true;
+        } catch (IOException | PGPException e) {
+            e.printStackTrace();
+        }
+
+        return false;
     }
 
     public static void main(String[] args) {

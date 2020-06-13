@@ -13,6 +13,7 @@ import java.security.NoSuchAlgorithmException;
  */
 public interface KeyRingManager {
     // reading key rings (collections)
+
     /**
      * Read secret key ring collection pgp secret key ring collection.
      *
@@ -32,6 +33,7 @@ public interface KeyRingManager {
     PGPPublicKeyRingCollection readPublicKeyRingCollection() throws IOException, PGPException;
 
     // importing keys (rings)
+
     /**
      * Import public key.
      *
@@ -51,6 +53,7 @@ public interface KeyRingManager {
     void importSecretKey(String secretKeyFilename) throws IOException, PGPException;
 
     // Adding keys to the keyring
+
     /**
      * Add el gamal key pair to key rings.
      *
@@ -74,4 +77,24 @@ public interface KeyRingManager {
      */
     void addMasterKeyPairToKeyRings(String userId, String password, PGPKeyPair keyPair) throws PGPException, IOException;
 
+
+    /**
+     * Remove key ring from secret key ring collection.
+     *
+     * @param userId                     the user id
+     * @param password                   the password
+     * @param masterPublicKeyFingerprint the master public key fingerprint
+     * @throws IOException  the io exception
+     * @throws PGPException the pgp exception
+     */
+    void removeKeyRingFromSecretKeyRingCollection(
+            String userId, String password, byte[] masterPublicKeyFingerprint
+    ) throws IOException, PGPException;
+
+    /**
+     * Remove key ring from public key ring collection.
+     *
+     * @param userId                     the user id
+     */
+    void removeKeyRingFromPublicKeyRingCollection(String userId);
 }
