@@ -17,7 +17,7 @@ public class ConstantAndNamingUtils {
     public static final String RECEIVER_PUBLIC_KEY_RING = "./data/receiver-public-key-ring.pgp";
 
     public static final String EL_GAMAL_ALGORITHM_NAME = "ELGAMAL";
-    public static final int EL_GAMAL_ALGORITHM_TAG =  PublicKeyAlgorithmTags.ELGAMAL_GENERAL;
+    public static final int EL_GAMAL_ALGORITHM_TAG =  PublicKeyAlgorithmTags.ELGAMAL_ENCRYPT;
 
     public static final String DSA_ALGORITHM_NAME = "DSA";
     public static final int DSA_ALGORITHM_TAG =  PublicKeyAlgorithmTags.DSA;

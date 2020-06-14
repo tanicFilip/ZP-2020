@@ -112,7 +112,7 @@ public class KeyRingManagerImpl implements KeyRingManager {
     // adding keys to key rings
     @Override
     public void addElGamalKeyPairToKeyRings(String userId, String password, PGPKeyPair elGamalKeyPair) throws PGPException, IOException, NoSuchAlgorithmException {
-        PGPKeyPair dummyMasterKeyPair = pgp.generateKeyPair("DSA", PublicKeyAlgorithmTags.DSA, 1024);
+        PGPKeyPair dummyMasterKeyPair = pgp.generateKeyPair("DSA", PublicKeyAlgorithmTags.DSA, 2048);
         addMasterAndSubKeyPairsToKeyRings(userId, password, dummyMasterKeyPair, elGamalKeyPair);
     }
 
@@ -128,6 +128,7 @@ public class KeyRingManagerImpl implements KeyRingManager {
 
         // Generated public key store to a separate file that can later be exchanged between users
         var publicKeyRing = keyRingGenerator.generatePublicKeyRing();
+
         // generate public key for export
         DataWriteUtils.writeBytesToFile(publicKeyRing.getEncoded(), ConstantAndNamingUtils.generatePublicKeyFileName(userId));
 
@@ -143,7 +144,7 @@ public class KeyRingManagerImpl implements KeyRingManager {
 
         var pgpContentSignerBuilder = new JcaPGPContentSignerBuilder(
                 pgpKeyPairMaster.getPublicKey().getAlgorithm(),
-                HashAlgorithmTags.SHA384
+                HashAlgorithmTags.SHA256
         );
 
         var pbeSecretKeyEncryptor =

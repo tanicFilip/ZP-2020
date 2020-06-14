@@ -41,7 +41,7 @@ public class Simulation {
     public static final String decodedSignedFileName = "decoded-signed-output.asc";
     public static final String decodedFileName = "decoded-output.txt";
 
-    public static final int keySize = 1024;
+    public static final int keySize = 2048;
 
     public static PGP pgp = new PGPImpl();
     public static KeyRingManager senderKeyRingManager = new KeyRingManagerImpl(ConstantAndNamingUtils.SENDER_SECRET_KEY_RING, ConstantAndNamingUtils.SENDER_PUBLIC_KEY_RING);
@@ -176,7 +176,7 @@ public class Simulation {
 
         logger.info("Encrypting message...");
         try {
-            pgp.encryptMessage(outputFileName, encodedOutputFileName, true, elgamalPublicKeyRing);
+            pgp.encryptMessage(outputFileName, encodedOutputFileName, false, elgamalPublicKeyRing);
         } catch (IOException | PGPException | PublicKeyRingDoesNotContainElGamalKey e) {
             logger.error("Failed to encrypt the message. {}", e.getMessage());
         }

@@ -218,7 +218,7 @@ public class PGPImpl implements PGP {
     // signing helper methods
     private static JcaPGPContentSignerBuilder getJcaPGPContentSignerBuilder() {
         JcaPGPContentSignerBuilder jcaPGPContentSignerBuilder
-                = new JcaPGPContentSignerBuilder(PublicKeyAlgorithmTags.DSA, HashAlgorithmTags.SHA1);
+                = new JcaPGPContentSignerBuilder(PublicKeyAlgorithmTags.DSA, HashAlgorithmTags.SHA256);
         jcaPGPContentSignerBuilder.setProvider(BC_PROVIDER);
         return jcaPGPContentSignerBuilder;
     }
