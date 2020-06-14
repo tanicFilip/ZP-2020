@@ -1,11 +1,13 @@
 package openpgp.pgp.impl;
 
 import openpgp.pgp.PGP;
+import openpgp.utils.DataReadUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.bouncycastle.bcpg.*;
 import org.bouncycastle.openpgp.*;
 import org.bouncycastle.openpgp.bc.BcPGPObjectFactory;
 import org.bouncycastle.openpgp.jcajce.JcaPGPObjectFactory;
+import org.bouncycastle.openpgp.operator.PBESecretKeyDecryptor;
 import org.bouncycastle.openpgp.operator.bc.BcPGPContentVerifierBuilderProvider;
 import org.bouncycastle.openpgp.operator.jcajce.*;
 import org.bouncycastle.util.io.Streams;
@@ -26,6 +28,7 @@ import java.util.Objects;
 public class PGPImpl implements PGP {
 
     public static final String BC_PROVIDER = "BC";
+    private static final Logger logger = LoggerFactory.getLogger(PGPImpl.class);
 
     // generates key pair
     @Override
@@ -159,12 +162,61 @@ public class PGPImpl implements PGP {
     }
 
     @Override
-    public void readEncryptedFile(String outputFileName, String receivedFileName, PGPPrivateKey pgpPrivateKey)
+    public byte[] verifyMessage(String inputFileName, PGPPublicKeyRingCollection receiversPublicKeyRingCollection) {
+        byte[] decodedMessage = null;
+        var publicKeyRingIterator = receiversPublicKeyRingCollection.iterator();
+        while(publicKeyRingIterator.hasNext()){
+            PGPPublicKey key = publicKeyRingIterator.next().getPublicKey();
+            try{
+                logger.info("Verifying signed message...");
+                decodedMessage = readSignedMessage(DataReadUtils.readBytesFromFile(inputFileName), key);
+                logger.info("Verified signed message");
+            }catch(InvalidSignatureException e){
+                logger.warn("Failed to decrypt the message. Error message: {}", e.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return decodedMessage;
+    }
+
+    @Override
+    public void decryptFile(String inputFileName, String outputFileName, String password, PGPSecretKeyRingCollection secretKeyRingCollection) {
+        var elgamalIterator = secretKeyRingCollection.getKeyRings();
+        while(elgamalIterator.hasNext()) {
+
+            var elgamalKeyRing = elgamalIterator.next();
+            var elgamalKeyRingIterator = elgamalKeyRing.iterator();
+            PGPSecretKey secretKey = null;
+            while(elgamalKeyRingIterator.hasNext()) {
+                var item = elgamalKeyRingIterator.next();
+                if(item.getPublicKey().getAlgorithm() == PublicKeyAlgorithmTags.ELGAMAL_ENCRYPT){
+                    secretKey = item;
+                    break;
+                }
+            }
+            if(secretKey == null){
+                continue;
+            }
+
+            logger.info("Decrypting message...");
+            try {
+                PBESecretKeyDecryptor decryptorFactory = new JcePBESecretKeyDecryptorBuilder().setProvider("BC").build(password.toCharArray());
+                readEncryptedFile(inputFileName, outputFileName, secretKey.extractPrivateKey(decryptorFactory));
+                logger.info("Decrypted message.");
+                break;
+            }catch (Exception e){
+                logger.info("Wrong key, try again");
+            }
+        }
+    }
+
+    private void readEncryptedFile(String inputFileName, String outputFileName, PGPPrivateKey pgpPrivateKey)
             throws IOException, PGPException, BadMessageException {
         InputStream bufferedInputStream = null;
         OutputStream fOut = null;
         try {
-            bufferedInputStream = new BufferedInputStream(new FileInputStream(receivedFileName));
+            bufferedInputStream = new BufferedInputStream(new FileInputStream(inputFileName));
             bufferedInputStream = PGPUtil.getDecoderStream(bufferedInputStream);
 
             var pgpObjectFactory = new JcaPGPObjectFactory(bufferedInputStream);

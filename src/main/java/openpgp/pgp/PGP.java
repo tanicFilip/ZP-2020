@@ -21,6 +21,8 @@ public interface PGP {
             throws IOException, PGPException, PublicKeyRingDoesNotContainElGamalKey;
 
 
-    void readEncryptedFile(String outputFileName, String receivedFileName, PGPPrivateKey pgpPrivateKey)
-            throws IOException, PGPException, BadMessageException;
+    // decryption
+    byte[] verifyMessage(String inputFileName, PGPPublicKeyRingCollection receiversPublicKeyRingCollection);
+    void decryptFile(String inputFileName, String outputFileName, String password, PGPSecretKeyRingCollection secretKeyRingCollection);
+
 }

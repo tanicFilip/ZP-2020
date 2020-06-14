@@ -176,7 +176,7 @@ public class Simulation {
 
         logger.info("Encrypting message...");
         try {
-            pgp.encryptMessage(outputFileName, encodedOutputFileName, false, elgamalPublicKeyRing);
+            pgp.encryptMessage(outputFileName, encodedOutputFileName, true, elgamalPublicKeyRing);
         } catch (IOException | PGPException | PublicKeyRingDoesNotContainElGamalKey e) {
             logger.error("Failed to encrypt the message. {}", e.getMessage());
         }
@@ -206,48 +206,10 @@ public class Simulation {
         logger.info("Retrieved recievers key ring collections ");
 
         // TODO = ovo valja izbacit u zasebnu metodu al me jako mrzi sada
-        var elgamalIterator = receiversSecretKeyRingCollection.getKeyRings();
-        while(elgamalIterator.hasNext()) {
-
-            var elgamalKeyRing = elgamalIterator.next();
-            var elgamalKeyRingIterator = elgamalKeyRing.iterator();
-            PGPSecretKey secretKey = null;
-            while(elgamalKeyRingIterator.hasNext()) {
-                secretKey = elgamalKeyRingIterator.next();
-                System.err.println(secretKey.getKeyEncryptionAlgorithm());
-                if(secretKey.getKeyEncryptionAlgorithm() == PublicKeyAlgorithmTags.ELGAMAL_GENERAL){
-                    break;
-                }
-            }
-            if(secretKey == null){
-                continue;
-            }
-
-            logger.info("Decrypting message...");
-            try {
-                PBESecretKeyDecryptor decryptorFactory = new JcePBESecretKeyDecryptorBuilder().setProvider("BC").build("password".toCharArray());
-                pgp.readEncryptedFile(decodedSignedFileName, encodedOutputFileName, secretKey.extractPrivateKey(decryptorFactory));
-                logger.info("Decrypted message.");
-            }catch (Exception e){
-                logger.info("Wrong key, try again");
-            }
-        }
+        pgp.decryptFile(encodedOutputFileName, decodedSignedFileName, "password", receiversSecretKeyRingCollection);
 
         // TODO - a i ovo mozda
-        byte[] decodedMessage = null;
-        var publicKeyRingIterator = receiversPublicKeyRingCollection.iterator();
-        while(publicKeyRingIterator.hasNext()){
-            PGPPublicKey key = publicKeyRingIterator.next().getPublicKey();
-            try{
-                logger.info("Verifying signed message...");
-                decodedMessage = pgp.readSignedMessage(DataReadUtils.readBytesFromFile(decodedSignedFileName), key);
-                logger.info("Verified signed message");
-            }catch(InvalidSignatureException e){
-                logger.warn("Failed to decrypt the message. Error message: {}", e.getMessage());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+        byte[] decodedMessage = pgp.verifyMessage(decodedSignedFileName, receiversPublicKeyRingCollection);
 
         if(Objects.isNull(decodedMessage))
             throw new Exception("Well this one was unexpected :(");
@@ -257,4 +219,5 @@ public class Simulation {
 
         DataWriteUtils.writeBytesToFile(message, decodedFileName);
     }
+
 }
