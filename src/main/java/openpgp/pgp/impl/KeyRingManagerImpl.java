@@ -121,7 +121,8 @@ public class KeyRingManagerImpl implements KeyRingManager {
         addMasterAndSubKeyPairsToKeyRings(userId, password, keyPair, null);
     }
 
-    private void addMasterAndSubKeyPairsToKeyRings(String userId, String password, PGPKeyPair masterKey, PGPKeyPair subKey) throws PGPException, IOException {
+    @Override
+    public void addMasterAndSubKeyPairsToKeyRings(String userId, String password, PGPKeyPair masterKey, PGPKeyPair subKey) throws PGPException, IOException {
         PGPKeyRingGenerator keyRingGenerator = getPgpKeyRingGenerator(userId, password, masterKey);
         if(Objects.nonNull(subKey))
             keyRingGenerator.addSubKey(subKey);
@@ -129,8 +130,17 @@ public class KeyRingManagerImpl implements KeyRingManager {
         // Generated public key store to a separate file that can later be exchanged between users
         var publicKeyRing = keyRingGenerator.generatePublicKeyRing();
 
+        /**
+         * Public keys will not be automatically exported but added as a functionality to user
+         */
         // generate public key for export
-        DataWriteUtils.writeBytesToFile(publicKeyRing.getEncoded(), ConstantAndNamingUtils.generatePublicKeyFileName(userId));
+        DataWriteUtils.writeBytesToFile(
+                publicKeyRing.getEncoded(),
+                ConstantAndNamingUtils.generatePublicKeyFileName(
+                        userId,
+                        publicKeyRing.getPublicKey().getFingerprint()
+                )
+        );
 
         // Generate secret key, add it to current private key ring
         addSecretKeyRingToTheCollection(keyRingGenerator);

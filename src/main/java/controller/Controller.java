@@ -1,6 +1,7 @@
 package controller;
 
 import backend.Backend;
+import gui.ExportKeyStage;
 import gui.GUI;
 import gui.GenerateKeyStage;
 import gui.KeyRingHumanFormat;
@@ -9,9 +10,12 @@ import javafx.collections.ObservableList;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.ToggleGroup;
 import javafx.stage.Stage;
 import org.bouncycastle.util.encoders.Base64;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -21,6 +25,7 @@ import java.util.Date;
 public class Controller {
 
     static GenerateKeyStage generateKeyStage;
+    static ExportKeyStage exportKeyStage;
 
     public static void initGenerateKeyPair(MenuItem menuItem, Stage primaryStage){
         menuItem.setOnAction(value -> {
@@ -30,13 +35,34 @@ public class Controller {
         });
     }
 
-    public static void initEncryptMessage(MenuItem menuItem){
+    public static void initImportKey(MenuItem menuItem){
+        menuItem.setOnAction(value -> {
+
+        });
+    }
+
+    private static KeyRingHumanFormat.KeyType selectedType = KeyRingHumanFormat.KeyType.PUBLIC;
+
+    public static void initExportKey(MenuItem menuItem, Stage primaryStage){
+        menuItem.setOnAction(value -> {
+            if(GUI.getInstance().getSelected() == null){
+                GUI.getInstance().alertInfo("Select a key first");
+                return;
+            }
+
+            exportKeyStage = new ExportKeyStage(primaryStage, GUI.getInstance().getSelected());
+            exportKeyStage.setTitle("Export keys");
+            exportKeyStage.show();
+        });
+    }
+
+    public static void initSendMessage(MenuItem menuItem){
         menuItem.setOnAction(value -> {
             System.out.println("action 3");
         });
     }
 
-    public static void  initDecryptMessage(MenuItem menuItem){
+    public static void initReceiveMessage(MenuItem menuItem){
         menuItem.setOnAction(value -> {
             System.out.println("action 4");
             getKeyRings();
@@ -82,7 +108,41 @@ public class Controller {
             );
             newKeyRingHumanFormat.setDateExpires(dateExpires);
 
-            newKeyRingHumanFormat.setMasterPublicKeyFingerprint(
+            // check if this is necessary!
+            if(keyRing.getPublicKey() == null){
+                newKeyRingHumanFormat.setKeyType(KeyRingHumanFormat.KeyType.SECRET);
+                newKeyRingHumanFormat.setMasterKeyFingerprint(
+                        null
+                );
+            }
+            else{
+                newKeyRingHumanFormat.setKeyType(KeyRingHumanFormat.KeyType.PAIR);
+                newKeyRingHumanFormat.setMasterKeyFingerprint(
+                        Base64.toBase64String(keyRing.getPublicKey().getFingerprint())
+                );
+            }
+
+            keyRings.add(newKeyRingHumanFormat);
+        }
+
+        var iteratorPublic = publicKeyRingCollection.getKeyRings();
+        while(iteratorPublic.hasNext()){
+            var keyRing = iteratorPublic.next();
+            KeyRingHumanFormat newKeyRingHumanFormat = new KeyRingHumanFormat();
+
+            String[] userIds = getUserCredentials(keyRing.getPublicKey().getUserIDs().next());
+            newKeyRingHumanFormat.setName(userIds[0]);
+            newKeyRingHumanFormat.setEmail(userIds[1]);
+
+            newKeyRingHumanFormat.setDateCreated(keyRing.getPublicKey().getCreationTime());
+            Date dateExpires = new Date();
+            dateExpires.setTime(
+                    keyRing.getPublicKey().getCreationTime().getTime() + keyRing.getPublicKey().getValidSeconds()
+            );
+            newKeyRingHumanFormat.setDateExpires(dateExpires);
+
+            newKeyRingHumanFormat.setKeyType(KeyRingHumanFormat.KeyType.PUBLIC);
+            newKeyRingHumanFormat.setMasterKeyFingerprint(
                     Base64.toBase64String(keyRing.getPublicKey().getFingerprint())
             );
 
@@ -106,13 +166,14 @@ public class Controller {
     }
 
     public static void deleteKeyPair(KeyRingHumanFormat keyRingHumanFormat, String password){
-        byte[] masterPublicKeyFingerprint = Base64.decode(keyRingHumanFormat.getMasterPublicKeyFingerprint());
+        byte[] masterKeyFingerprint = Base64.decode(keyRingHumanFormat.getMasterKeyFingerprint());
 
         if(Backend.getInstance().removeKeyPair(
                 keyRingHumanFormat.getName(),
                 keyRingHumanFormat.getEmail(),
                 password,
-                masterPublicKeyFingerprint
+                masterKeyFingerprint,
+                keyRingHumanFormat.getKeyType()
         )){
             GUI.getInstance().alertInfo("Sucess!");
 
@@ -120,6 +181,26 @@ public class Controller {
         }
         else{
             GUI.getInstance().alertInfo("Failed!");
+        }
+    }
+
+    public static void exportKey(KeyRingHumanFormat keyRingHumanFormat, KeyRingHumanFormat.KeyType exportKeyType, String password, File exportTo){
+        byte[] masterKeyFingerprint = Base64.decode(keyRingHumanFormat.getMasterKeyFingerprint());
+
+        if(Backend.getInstance().exportKey(
+                keyRingHumanFormat.getName(),
+                keyRingHumanFormat.getEmail(),
+                password,
+                masterKeyFingerprint,
+                keyRingHumanFormat.getKeyType(),
+                exportKeyType,
+                exportTo
+        )){
+            exportKeyStage.alertInfo("Success!");
+            exportKeyStage.close();
+        }
+        else{
+            exportKeyStage.alertInfo("Failed!");
         }
     }
 

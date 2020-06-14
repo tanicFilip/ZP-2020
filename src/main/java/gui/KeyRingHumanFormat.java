@@ -4,21 +4,26 @@ import java.util.Date;
 
 public class KeyRingHumanFormat {
 
+    public enum KeyType {
+        SECRET, PUBLIC, PAIR
+    }
+
     private String name;
     private String email;
     private Date dateCreated;
     private Date dateExpires;
-    private String masterPublicKeyFingerprint;
+    private String masterKeyFingerprint;
+    private KeyType keyType;
 
     public KeyRingHumanFormat() {
     }
 
-    public KeyRingHumanFormat(String name, String email, Date dateCreated, Date dateExpires, String masterPublicKeyFingerprint) {
+    public KeyRingHumanFormat(String name, String email, Date dateCreated, Date dateExpires, String masterKeyFingerprint) {
         this.name = name;
         this.email = email;
         this.dateCreated = dateCreated;
         this.dateExpires = dateExpires;
-        this.masterPublicKeyFingerprint = masterPublicKeyFingerprint;
+        this.masterKeyFingerprint = masterKeyFingerprint;
     }
 
     public String getName() {
@@ -53,12 +58,20 @@ public class KeyRingHumanFormat {
         this.dateExpires = dateExpires;
     }
 
-    public String getMasterPublicKeyFingerprint() {
-        return masterPublicKeyFingerprint;
+    public String getMasterKeyFingerprint() {
+        return masterKeyFingerprint;
     }
 
-    public void setMasterPublicKeyFingerprint(String masterPublicKeyFingerprint) {
-        this.masterPublicKeyFingerprint = masterPublicKeyFingerprint;
+    public void setMasterKeyFingerprint(String masterKeyFingerprint) {
+        this.masterKeyFingerprint = masterKeyFingerprint;
+    }
+
+    public KeyType getKeyType() {
+        return keyType;
+    }
+
+    public void setKeyType(KeyType keyType) {
+        this.keyType = keyType;
     }
 
     @Override
@@ -68,7 +81,7 @@ public class KeyRingHumanFormat {
                 ", email='" + email + '\'' +
                 ", dateCreated=" + dateCreated +
                 ", dateExpires=" + dateExpires +
-                ", keyFingerprint=" + masterPublicKeyFingerprint +
+                ", keyFingerprint=" + masterKeyFingerprint +
                 '}';
     }
 

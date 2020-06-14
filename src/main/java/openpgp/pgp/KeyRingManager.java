@@ -77,6 +77,17 @@ public interface KeyRingManager {
      */
     void addMasterKeyPairToKeyRings(String userId, String password, PGPKeyPair keyPair) throws PGPException, IOException;
 
+    /**
+     * Adds a new complete KeyRing to KeyRings
+     *
+     * @param userId    the user id
+     * @param password  the password
+     * @param masterKey the master key pair (DSA)
+     * @param subKey    the sub key pair (ElGamal)
+     * @throws PGPException the pgp exception
+     * @throws IOException  the io exception
+     */
+    public void addMasterAndSubKeyPairsToKeyRings(String userId, String password, PGPKeyPair masterKey, PGPKeyPair subKey) throws PGPException, IOException;
 
     /**
      * Remove key ring from secret key ring collection.

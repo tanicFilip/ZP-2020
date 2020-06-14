@@ -30,9 +30,11 @@ public class GUI extends Application {
 
     MenuItem generateKeyPair = new MenuItem("Generate a new key pair");
     MenuItem deleteKeyPair = new MenuItem("Delete a key pair");
+    MenuItem importKey = new MenuItem("Import a key");
+    MenuItem exportKey = new MenuItem("Export a key");
 
-    MenuItem encryptMessage = new MenuItem("Encrypt a message");
-    MenuItem decryptMessage = new MenuItem("Decrypt a message");
+    MenuItem sendMessage = new MenuItem("Encrypt a message");
+    MenuItem receiveMessage = new MenuItem("Decrypt a message");
 
     TableView<KeyRingHumanFormat> keyRingsTablewView = new TableView<>();
 
@@ -40,6 +42,10 @@ public class GUI extends Application {
         keyRingsTablewView.getItems().clear();
 
         keyRingsTablewView.getItems().addAll(Controller.getKeyRings());
+    }
+
+    public KeyRingHumanFormat getSelected(){
+        return keyRingsTablewView.getSelectionModel().getSelectedItem();
     }
 
     @Override
@@ -56,12 +62,11 @@ public class GUI extends Application {
 
         Menu keyMenu = new Menu("Key");
 
-        generateKeyPair = new MenuItem("Generate a new key pair");
         generateKeyPair.setAccelerator(
                 new KeyCharacterCombination(String.valueOf(KeyCode.G), KeyCombination.CONTROL_DOWN)
         );
         Controller.initGenerateKeyPair(generateKeyPair, primaryStage);
-        deleteKeyPair = new MenuItem("Delete a key pair");
+
         deleteKeyPair.setAccelerator(
                 new KeyCharacterCombination(String.valueOf(KeyCode.DELETE))// why does it not work?
         );
@@ -75,71 +80,103 @@ public class GUI extends Application {
 
             Dialog<String> passwordAndConfirmDialog = new Dialog<>();
             passwordAndConfirmDialog.setTitle("Delete key dialog");
-            passwordAndConfirmDialog.setHeaderText("Password is required to delete a key");
+            if(keyRingsTablewView.getSelectionModel().getSelectedItem().getKeyType() == KeyRingHumanFormat.KeyType.PAIR){
+                passwordAndConfirmDialog.setHeaderText("Password is required to delete a key");
+            }
+            else if(keyRingsTablewView.getSelectionModel().getSelectedItem().getKeyType() == KeyRingHumanFormat.KeyType.PUBLIC){
+                passwordAndConfirmDialog.setHeaderText("Are You sure?");
+            }
+
 
             ButtonType deleteButtonType = new ButtonType("Delete", ButtonData.OK_DONE);
             passwordAndConfirmDialog.getDialogPane().getButtonTypes().addAll(deleteButtonType, ButtonType.CANCEL);
 
-            GridPane grid = new GridPane();
-            grid.setHgap(10);
-            grid.setVgap(10);
-            grid.setPadding(new Insets(20, 150, 10, 10));
+            if(keyRingsTablewView.getSelectionModel().getSelectedItem().getKeyType() == KeyRingHumanFormat.KeyType.PAIR){
+                GridPane grid = new GridPane();
+                grid.setHgap(10);
+                grid.setVgap(10);
+                grid.setPadding(new Insets(20, 150, 10, 10));
 
-            PasswordField password = new PasswordField();
-            password.setPromptText("password");
+                PasswordField password = new PasswordField();
+                password.setPromptText("password");
 
-            grid.add(new Label("Password:"), 0, 0);
-            grid.add(password, 1, 0);
+                grid.add(new Label("Password:"), 0, 0);
+                grid.add(password, 1, 0);
 
-            passwordAndConfirmDialog.getDialogPane().setContent(grid);
-            passwordAndConfirmDialog.setResultConverter(dialogButton -> {
-                if (dialogButton == deleteButtonType) {
-                    return password.getText();
+                passwordAndConfirmDialog.getDialogPane().setContent(grid);
+                passwordAndConfirmDialog.setResultConverter(dialogButton -> {
+                    if (dialogButton == deleteButtonType) {
+                        return password.getText();
+                    }
+                    return null;
+                });
+
+                Optional<String> result = passwordAndConfirmDialog.showAndWait();
+
+                if(!result.isEmpty()){
+                    Controller.deleteKeyPair(keyRingsTablewView.getSelectionModel().getSelectedItem(), result.get());
                 }
-                return null;
-            });
+            }
+            else if(keyRingsTablewView.getSelectionModel().getSelectedItem().getKeyType() == KeyRingHumanFormat.KeyType.PUBLIC){
+                passwordAndConfirmDialog.setResultConverter(dialogButton -> {
+                    if (dialogButton == deleteButtonType) {
+                        return "";
+                    }
+                    return null;
+                });
 
-            Optional<String> result = passwordAndConfirmDialog.showAndWait();
+                var result = passwordAndConfirmDialog.showAndWait();
 
-            if(!result.isEmpty()){
                 Controller.deleteKeyPair(keyRingsTablewView.getSelectionModel().getSelectedItem(), result.get());
             }
 
         });
 
-        keyMenu.getItems().addAll(generateKeyPair, deleteKeyPair);
+        importKey.setAccelerator(
+                new KeyCharacterCombination(String.valueOf(KeyCode.I), KeyCombination.CONTROL_DOWN)
+        );
+        Controller.initImportKey(importKey);
+
+        exportKey.setAccelerator(
+                new KeyCharacterCombination(String.valueOf(KeyCode.E), KeyCombination.CONTROL_DOWN)
+        );
+        Controller.initExportKey(exportKey, primaryStage);
+
+        keyMenu.getItems().addAll(generateKeyPair, deleteKeyPair, new SeparatorMenuItem(), importKey, exportKey);
 
         Menu messageMenu = new Menu("Message");
 
-        encryptMessage = new MenuItem("Encrypt a message");
-        encryptMessage.setAccelerator(
-                new KeyCharacterCombination(String.valueOf(KeyCode.E), KeyCombination.CONTROL_DOWN)
+        sendMessage = new MenuItem("Send message");
+        sendMessage.setAccelerator(
+                new KeyCharacterCombination(String.valueOf(KeyCode.S), KeyCombination.CONTROL_DOWN)
         );
-        Controller.initEncryptMessage(encryptMessage);
-        decryptMessage = new MenuItem("Decrypt a message");
-        decryptMessage.setAccelerator(
-                new KeyCharacterCombination(String.valueOf(KeyCode.D), KeyCombination.CONTROL_DOWN)
+        Controller.initSendMessage(sendMessage);
+        receiveMessage = new MenuItem("Receive message");
+        receiveMessage.setAccelerator(
+                new KeyCharacterCombination(String.valueOf(KeyCode.R), KeyCombination.CONTROL_DOWN)
         );
-        Controller.initDecryptMessage(decryptMessage);
+        Controller.initReceiveMessage(receiveMessage);
 
-        messageMenu.getItems().addAll(encryptMessage, decryptMessage);
+        messageMenu.getItems().addAll(sendMessage, receiveMessage);
 
         menuBar.getMenus().addAll(keyMenu, messageMenu);
 
         // init TableView containing key rings and their info
-        TableColumn<KeyRingHumanFormat, String> nameColumn = new TableColumn<>();
+        TableColumn<KeyRingHumanFormat, String> nameColumn = new TableColumn<>("Name");
         nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
-        TableColumn<KeyRingHumanFormat, String> emailColumn = new TableColumn<>();
+        TableColumn<KeyRingHumanFormat, String> emailColumn = new TableColumn<>("Email");
         emailColumn.setCellValueFactory(new PropertyValueFactory<>("email"));
-        TableColumn<KeyRingHumanFormat, String> dateCreatedColumn = new TableColumn<>();
+        TableColumn<KeyRingHumanFormat, String> dateCreatedColumn = new TableColumn<>("Date created");
         dateCreatedColumn.setCellValueFactory(new PropertyValueFactory<>("dateCreated"));
-        TableColumn<KeyRingHumanFormat, String> dateExpiresColumn = new TableColumn<>();
+        TableColumn<KeyRingHumanFormat, String> dateExpiresColumn = new TableColumn<>("Date expires");
         dateExpiresColumn.setCellValueFactory(new PropertyValueFactory<>("dateExpires"));
-        TableColumn<KeyRingHumanFormat, String> fingerprintColumn = new TableColumn<>();
-        fingerprintColumn.setCellValueFactory(new PropertyValueFactory<>("masterPublicKeyFingerprint"));
+        TableColumn<KeyRingHumanFormat, String> fingerprintColumn = new TableColumn<>("Fingerprint");
+        fingerprintColumn.setCellValueFactory(new PropertyValueFactory<>("masterKeyFingerprint"));
+        TableColumn<KeyRingHumanFormat, String> keyTypeColumn = new TableColumn<>("Key type");
+        keyTypeColumn.setCellValueFactory(new PropertyValueFactory<>("keyType"));
 
         keyRingsTablewView.getColumns().addAll(
-                nameColumn, emailColumn, dateCreatedColumn, dateExpiresColumn, fingerprintColumn
+                nameColumn, emailColumn, dateCreatedColumn, dateExpiresColumn, fingerprintColumn, keyTypeColumn
         );
 
         // initial data fetch

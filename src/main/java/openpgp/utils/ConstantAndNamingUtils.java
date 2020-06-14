@@ -3,7 +3,9 @@ package openpgp.utils;
 import openpgp.exceptions.BadUserIdFormat;
 import org.bouncycastle.bcpg.PublicKeyAlgorithmTags;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.HashMap;
 
 /**
  * The type Naming utils.
@@ -27,10 +29,10 @@ public class ConstantAndNamingUtils {
      * @param userId the user id
      * @return generated file name
      */
-    private static int counter = 0;
-    public static String generatePublicKeyFileName(String userId){
+    //private static int counter = 0;
+    public static String generatePublicKeyFileName(String userId, byte[] publicKeyFingerprint){
         //return String.format("./data/export/%s-public-key-%s.asc", userId, Instant.now().getNano());
-        return String.format("./data/export/%s-public-key-%s.asc", userId, counter++);
+        return String.format("./data/export/%s-public-key-%s.asc", userId, new String(publicKeyFingerprint, StandardCharsets.UTF_16));
     }
 
     /**
