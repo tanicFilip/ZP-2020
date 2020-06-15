@@ -2,6 +2,7 @@ package openpgp.utils;
 
 import openpgp.exceptions.BadUserIdFormat;
 import org.bouncycastle.bcpg.PublicKeyAlgorithmTags;
+import org.bouncycastle.openpgp.PGPEncryptedData;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -20,6 +21,9 @@ public class ConstantAndNamingUtils {
 
     public static final String EL_GAMAL_ALGORITHM_NAME = "ELGAMAL";
     public static final int EL_GAMAL_ALGORITHM_TAG =  PublicKeyAlgorithmTags.ELGAMAL_ENCRYPT;
+
+    public static final int TRIPLE_DES_ALGORITHM_TAG = PGPEncryptedData.TRIPLE_DES;
+    public static final int AES256_ALGORITHM_TAG = PGPEncryptedData.AES_256;
 
     public static final String DSA_ALGORITHM_NAME = "DSA";
     public static final int DSA_ALGORITHM_TAG =  PublicKeyAlgorithmTags.DSA;

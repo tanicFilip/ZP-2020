@@ -22,7 +22,9 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.security.NoSuchAlgorithmException;
 import java.security.Security;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 
 public class Simulation {
@@ -68,8 +70,10 @@ public class Simulation {
         // RECEIVER PART
         logger.info("Receiver generates elgamal key");
         PGPKeyPair elgamalKeyPair = null;
+        PGPKeyPair elgamalKeyPair1 = null;
         try {
             elgamalKeyPair = pgp.generateKeyPair(ConstantAndNamingUtils.EL_GAMAL_ALGORITHM_NAME, ConstantAndNamingUtils.EL_GAMAL_ALGORITHM_TAG, keySize);
+            elgamalKeyPair1 = pgp.generateKeyPair(ConstantAndNamingUtils.EL_GAMAL_ALGORITHM_NAME, ConstantAndNamingUtils.EL_GAMAL_ALGORITHM_TAG, keySize);
         } catch (NoSuchAlgorithmException | PGPException e) {
             logger.error("Failed to generate el gamal key pair");
             return;
@@ -82,6 +86,7 @@ public class Simulation {
 
         logger.info("Receiver adds elgamal key to his private key ring collection...");
         receiverKeyRingManager.addElGamalKeyPairToKeyRings(receiverId, PASSWORD, elgamalKeyPair);
+        receiverKeyRingManager.addElGamalKeyPairToKeyRings(receiverId, PASSWORD, elgamalKeyPair1);
         logger.info("Receiver added elgamal key to his private key ring collection.");
         // RECEIVER PART ENDS
 
@@ -89,6 +94,7 @@ public class Simulation {
         logger.info("Import elgamal public key to senders public key ring..");
         try {
             senderKeyRingManager.importPublicKey(String.format("./data/export/%s-public-key-%s.asc", receiverId, 0));
+            senderKeyRingManager.importPublicKey(String.format("./data/export/%s-public-key-%s.asc", receiverId, 1));
         } catch (IOException | PGPException e) {
             logger.error("Failed to import public key. {}", e.getMessage());
             return;
@@ -173,10 +179,11 @@ public class Simulation {
             logger.error("Failed to find elgamal public key");
             return;
         }
-
+        List<PGPPublicKeyRing> elgamalKeys = new ArrayList<>();
+        elgamalKeys.add(elgamalPublicKeyRing);
         logger.info("Encrypting message...");
         try {
-            pgp.encryptMessage(outputFileName, encodedOutputFileName, true, elgamalPublicKeyRing);
+            pgp.encryptMessage(outputFileName, encodedOutputFileName, true, true, ConstantAndNamingUtils.TRIPLE_DES_ALGORITHM_TAG, elgamalKeys);
         } catch (IOException | PGPException | PublicKeyRingDoesNotContainElGamalKey e) {
             logger.error("Failed to encrypt the message. {}", e.getMessage());
         }
@@ -186,7 +193,7 @@ public class Simulation {
         // RECEIVER PART BEGINS
         logger.info("Import dsa public key to receivers public key ring..");
         try {
-            receiverKeyRingManager.importPublicKey(String.format("./data/export/%s-public-key-%s.asc", senderId, 1));
+            receiverKeyRingManager.importPublicKey(String.format("./data/export/%s-public-key-%s.asc", senderId, 2));
         } catch (IOException | PGPException e) {
             logger.error("Failed to import public key. {}", e.getMessage());
             return;

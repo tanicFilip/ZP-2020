@@ -19,10 +19,9 @@ import openpgp.exceptions.PublicKeyRingDoesNotContainElGamalKey;
 
 import java.io.*;
 import java.security.*;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 public class PGPImpl implements PGP {
@@ -87,7 +86,7 @@ public class PGPImpl implements PGP {
     }
 
     @Override
-    public byte[] readSignedMessage(byte[] signedMessage, PGPPublicKey publicKey) throws Exception {
+    public byte[] readSignedMessage(byte[] signedMessage, PGPPublicKey publicKey) throws InvalidSignatureException, IOException, PGPException {
         PGPObjectFactory jcaPGPObjectFactory = new BcPGPObjectFactory(signedMessage);
         PGPOnePassSignatureList pgpOnePassSignatureList = (PGPOnePassSignatureList) jcaPGPObjectFactory.nextObject();
 
@@ -123,10 +122,15 @@ public class PGPImpl implements PGP {
     }
 
     @Override
-    public void encryptMessage(String sourceFileName, String encryptedFileName, boolean shouldZIP, PGPPublicKeyRing receiverPublicKey)
+    public void encryptMessage(String sourceFileName, String encryptedFileName, boolean shouldZIP, boolean shouldRadix, int algorithmTag, List<PGPPublicKeyRing> receiverPublicKeys)
             throws IOException, PGPException, PublicKeyRingDoesNotContainElGamalKey {
 
-        OutputStream outputStream = new ArmoredOutputStream(new FileOutputStream(encryptedFileName));
+        OutputStream outputStream;
+        if(shouldRadix)
+            outputStream = new ArmoredOutputStream(new FileOutputStream(encryptedFileName));
+        else
+            outputStream = new FileOutputStream(encryptedFileName);
+
         byte[] data;
 
         if(shouldZIP)
@@ -134,24 +138,24 @@ public class PGPImpl implements PGP {
         else
             data = convertToLiteralData(sourceFileName);
 
-        // TODO = AES alg should not be fixed, but rather passed, also consider using Encrypt DTO instead of all these params
-        PGPEncryptedDataGenerator encGen = new PGPEncryptedDataGenerator(new JcePGPDataEncryptorBuilder(PGPEncryptedData.TRIPLE_DES)
+        PGPEncryptedDataGenerator encGen = new PGPEncryptedDataGenerator(new JcePGPDataEncryptorBuilder(algorithmTag)
                 .setWithIntegrityPacket(true).setSecureRandom(new SecureRandom()).setProvider("BC"));
 
-        var iterator = receiverPublicKey.getPublicKeys();
-        PGPPublicKey elGamalKey = null;
-        while(iterator.hasNext()){
-            PGPPublicKey item = iterator.next();
-            if(item.isEncryptionKey()){
-                elGamalKey = item;
-                break;
+        for (PGPPublicKeyRing receiverPublicKey : receiverPublicKeys) {
+            var iterator = receiverPublicKey.getPublicKeys();
+            PGPPublicKey elGamalKey = null;
+            while(iterator.hasNext()){
+                PGPPublicKey item = iterator.next();
+                if(item.isEncryptionKey()){
+                    elGamalKey = item;
+                    break;
+                }
             }
+            if(Objects.isNull(elGamalKey))
+                throw new PublicKeyRingDoesNotContainElGamalKey();
+
+            encGen.addMethod(new JcePublicKeyKeyEncryptionMethodGenerator(elGamalKey).setProvider("BC"));
         }
-        if(Objects.isNull(elGamalKey))
-            throw new PublicKeyRingDoesNotContainElGamalKey();
-
-
-        encGen.addMethod(new JcePublicKeyKeyEncryptionMethodGenerator(elGamalKey).setProvider("BC"));
 
         OutputStream encOut = encGen.open(outputStream, data.length);
         encOut.write(data);
@@ -171,7 +175,8 @@ public class PGPImpl implements PGP {
                 logger.info("Verifying signed message...");
                 decodedMessage = readSignedMessage(DataReadUtils.readBytesFromFile(inputFileName), key);
                 logger.info("Verified signed message");
-            }catch(InvalidSignatureException e){
+                break;
+            }catch(InvalidSignatureException | IOException e) {
                 logger.warn("Failed to decrypt the message. Error message: {}", e.getMessage());
             } catch (Exception e) {
                 e.printStackTrace();

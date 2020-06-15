@@ -6,6 +6,7 @@ import org.bouncycastle.openpgp.*;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 
 public interface PGP {
 
@@ -17,9 +18,8 @@ public interface PGP {
     byte[] readSignedMessage(byte[] signedMessage, PGPPublicKey publicKey) throws Exception;
 
     // encrypting message
-    void encryptMessage(String sourceFileName, String encryptedFileName, boolean shouldZIP, PGPPublicKeyRing receiverPublicKey)
+    void encryptMessage(String sourceFileName, String encryptedFileName, boolean shouldZIP, boolean shouldRadix, int algorithmTag, List<PGPPublicKeyRing> receiverPublicKey)
             throws IOException, PGPException, PublicKeyRingDoesNotContainElGamalKey;
-
 
     // decryption
     byte[] verifyMessage(String inputFileName, PGPPublicKeyRingCollection receiversPublicKeyRingCollection);

@@ -60,10 +60,12 @@ public class Sender {
 
         logger.info("Generate new key pair...");
         PGPKeyPair keyPair = pgp.generateKeyPair(DSA, PublicKeyAlgorithmTags.DSA, keySize);
+        PGPKeyPair pgpKeyPair = pgp.generateKeyPair(DSA, PublicKeyAlgorithmTags.DSA, keySize);
         logger.info("Generated new key pair.");
 
         logger.info("Add keypair to keyring collection...");
         senderKeyRingManager.addMasterKeyPairToKeyRings(email, password, keyPair);
+        senderKeyRingManager.addMasterKeyPairToKeyRings(email, password, pgpKeyPair);
         logger.info("Saved new keyring collection to file.");
 
         logger.info("Start reading message from file {}...", inputFileName);
@@ -81,7 +83,7 @@ public class Sender {
         logger.info("Encrypting message...");
         PGPPublicKeyRingCollection egKeyRingCollection = senderKeyRingManager.readPublicKeyRingCollection();
 
-        pgp.encryptMessage(outputFileName, encodedOutputFileName, false, egKeyRingCollection.getKeyRings().next());
+        //pgp.encryptMessage(outputFileName, encodedOutputFileName, false, egKeyRingCollection.getKeyRings().next());
         logger.info("Message encrypted.");
 
     }
