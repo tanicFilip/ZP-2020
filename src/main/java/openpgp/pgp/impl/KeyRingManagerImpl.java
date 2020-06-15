@@ -130,9 +130,6 @@ public class KeyRingManagerImpl implements KeyRingManager {
         // Generated public key store to a separate file that can later be exchanged between users
         var publicKeyRing = keyRingGenerator.generatePublicKeyRing();
 
-        /**
-         * Public keys will not be automatically exported but added as a functionality to user
-         */
         // generate public key for export
         DataWriteUtils.writeBytesToFile(
                 publicKeyRing.getEncoded(),
