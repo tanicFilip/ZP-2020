@@ -273,6 +273,29 @@ public class Backend {
         return false;
     }
 
+    public boolean importKey(File importFrom){
+        try {
+            keyRingManagerImpl.importPublicKey(importFrom.getAbsolutePath());
+
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (PGPException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            keyRingManagerImpl.importSecretKey(importFrom.getAbsolutePath());
+
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (PGPException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
 
     public static void main(String[] args) {
         /*new PGPKeyRingGenerator()

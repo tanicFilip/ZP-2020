@@ -68,7 +68,7 @@ public class GUI extends Application {
         Controller.initGenerateKeyPair(generateKeyPair, primaryStage);
 
         deleteKeyPair.setAccelerator(
-                new KeyCharacterCombination(String.valueOf(KeyCode.DELETE))// why does it not work?
+                new KeyCharacterCombination(String.valueOf(KeyCode.D), KeyCombination.CONTROL_DOWN)
         );
         deleteKeyPair.setOnAction(event -> {
             if(keyRingsTablewView.getSelectionModel().getSelectedItems().size() != 1){
@@ -135,7 +135,7 @@ public class GUI extends Application {
         importKey.setAccelerator(
                 new KeyCharacterCombination(String.valueOf(KeyCode.I), KeyCombination.CONTROL_DOWN)
         );
-        Controller.initImportKey(importKey);
+        Controller.initImportKey(importKey, primaryStage);
 
         exportKey.setAccelerator(
                 new KeyCharacterCombination(String.valueOf(KeyCode.E), KeyCombination.CONTROL_DOWN)

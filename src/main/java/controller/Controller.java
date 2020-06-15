@@ -12,11 +12,14 @@ import javafx.scene.control.Button;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ToggleGroup;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.bouncycastle.util.encoders.Base64;
 
+import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -35,9 +38,22 @@ public class Controller {
         });
     }
 
-    public static void initImportKey(MenuItem menuItem){
+    public static void initImportKey(MenuItem menuItem, Stage primaryStage){
         menuItem.setOnAction(value -> {
+            FileChooser importFromFile = new FileChooser();
+            importFromFile.setTitle("Import a file...");
 
+            File importFrom = importFromFile.showOpenDialog(primaryStage);
+
+            if(importFrom != null){
+                if(Backend.getInstance().importKey(importFrom)){
+                    GUI.getInstance().alertInfo("Success!");
+                    GUI.getInstance().updateInfo();
+                }
+                else{
+                    GUI.getInstance().alertInfo("Failed!");
+                }
+            }
         });
     }
 
