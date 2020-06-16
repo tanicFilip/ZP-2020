@@ -23,16 +23,19 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.security.Security;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class Backend {
 
     public static String PUBLIC_KEY_FILES = ".data/export";
+    public static String TEMP_FILES = "./data/temp";
     public static String SECRET_FILENAME = "./data/secret_keys_collection.pgp";
     public static String PUBLIC_FILENAME = "./data/public_keys_collection.pgp";
 
@@ -405,10 +408,6 @@ public class Backend {
 
             Files.copy(Path.of(currentFile), Path.of(newMessageFilename));
 
-            for(String fileName : filesToDelete){
-                Files.delete(Path.of(fileName));
-            }
-
             return true;
         } catch (IOException e) {
             e.printStackTrace();
@@ -418,15 +417,21 @@ public class Backend {
             publicKeyRingDoesNotContainElGamalKey.printStackTrace();
         }
 
-        for(String fileName : filesToDelete){
+        return false;
+    }
+
+
+
+    public void cleanTempFiles(){
+        var tempFiles = new File(TEMP_FILES).listFiles();
+
+        for(File tempFile : tempFiles){
             try {
-                Files.delete(Path.of(fileName));
+                Files.delete(tempFile.toPath());
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-
-        return false;
     }
 
     public static void main(String[] args) {

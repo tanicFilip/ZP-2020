@@ -264,4 +264,9 @@ public class Controller {
         }
     }
 
+
+    public static void cleanTempFiles(){
+        Backend.getInstance().cleanTempFiles();
+    }
+
 }

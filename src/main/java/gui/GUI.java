@@ -60,6 +60,8 @@ public class GUI extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
 
+        Controller.cleanTempFiles();
+
         instance = this;
         this.primaryStage = primaryStage;
         Group root = new Group();
