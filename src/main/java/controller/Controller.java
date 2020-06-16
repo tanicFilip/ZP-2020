@@ -1,10 +1,7 @@
 package controller;
 
 import backend.Backend;
-import gui.ExportKeyStage;
-import gui.GUI;
-import gui.GenerateKeyStage;
-import gui.KeyRingHumanFormat;
+import gui.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Scene;
@@ -29,6 +26,8 @@ public class Controller {
 
     static GenerateKeyStage generateKeyStage;
     static ExportKeyStage exportKeyStage;
+    static SendMessageStage sendMessageStage;
+    static ReceiveMessageStage receiveMessageStage;
 
     public static void initGenerateKeyPair(MenuItem menuItem, Stage primaryStage){
         menuItem.setOnAction(value -> {
@@ -72,16 +71,19 @@ public class Controller {
         });
     }
 
-    public static void initSendMessage(MenuItem menuItem){
+    public static void initSendMessage(MenuItem menuItem, Stage primaryStage){
         menuItem.setOnAction(value -> {
-            System.out.println("action 3");
+            sendMessageStage = new SendMessageStage(primaryStage);
+            sendMessageStage.setTitle("Send a message");
+            sendMessageStage.show();
         });
     }
 
-    public static void initReceiveMessage(MenuItem menuItem){
+    public static void initReceiveMessage(MenuItem menuItem, Stage primaryStage){
         menuItem.setOnAction(value -> {
-            System.out.println("action 4");
-            getKeyRings();
+            receiveMessageStage = new ReceiveMessageStage(primaryStage);
+            receiveMessageStage.setTitle("Receive a message");
+            receiveMessageStage.show();
         });
     }
 
@@ -217,6 +219,48 @@ public class Controller {
         }
         else{
             exportKeyStage.alertInfo("Failed!");
+        }
+    }
+
+    public static void sendMessage(
+            File message,
+            String privateFingerprint,
+            String[] publicFingerPrints,
+            String password,
+            boolean encrypt,
+            SendMessageStage.ENCRYPTION_ALGORITHM algorithm,
+            boolean sign,
+            boolean useZip,
+            boolean convertToRadix64)
+    {
+        byte[] privateFingerprintByte = privateFingerprint != null ? Base64.decode(privateFingerprint) : null;
+        byte[][] publicFingerPrintsByte = null;
+
+        if(publicFingerPrints != null) {
+            ArrayList<byte[]> publicFingerPrintsByteAL = new ArrayList<>();
+            for (var publicFingerPrint : publicFingerPrints) {
+                publicFingerPrintsByteAL.add(Base64.decode(publicFingerPrint));
+            }
+            publicFingerPrintsByte = publicFingerPrintsByteAL.toArray(new byte[publicFingerPrintsByteAL.size()][]);
+        }
+
+        if(Backend.getInstance().sendMessage(
+                message,
+                privateFingerprintByte,
+                publicFingerPrintsByte,
+                password,
+                encrypt,
+                algorithm,
+                sign,
+                useZip,
+                convertToRadix64
+        ))
+        {
+            sendMessageStage.alertInfo("Success!");
+            sendMessageStage.close();
+        }
+        else{
+            sendMessageStage.alertInfo("Failed!");
         }
     }
 

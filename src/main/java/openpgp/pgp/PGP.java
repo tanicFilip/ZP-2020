@@ -18,7 +18,7 @@ public interface PGP {
     byte[] readSignedMessage(byte[] signedMessage, PGPPublicKey publicKey) throws Exception;
 
     // encrypting message
-    void encryptMessage(String sourceFileName, String encryptedFileName, boolean shouldZIP, boolean shouldRadix, int algorithmTag, List<PGPPublicKeyRing> receiverPublicKey)
+    void encryptMessage(String sourceFileName, String encryptedFileName, boolean shouldZIP, boolean shouldRadix, int algorithmTag, List<PGPKeyRing> receiverPublicKey)
             throws IOException, PGPException, PublicKeyRingDoesNotContainElGamalKey;
 
     // decryption

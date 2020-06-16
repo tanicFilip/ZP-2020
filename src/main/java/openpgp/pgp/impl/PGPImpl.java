@@ -122,7 +122,7 @@ public class PGPImpl implements PGP {
     }
 
     @Override
-    public void encryptMessage(String sourceFileName, String encryptedFileName, boolean shouldZIP, boolean shouldRadix, int algorithmTag, List<PGPPublicKeyRing> receiverPublicKeys)
+    public void encryptMessage(String sourceFileName, String encryptedFileName, boolean shouldZIP, boolean shouldRadix, int algorithmTag, List<PGPKeyRing> receiverPublicKeys)
             throws IOException, PGPException, PublicKeyRingDoesNotContainElGamalKey {
 
         OutputStream outputStream;
@@ -141,11 +141,16 @@ public class PGPImpl implements PGP {
         PGPEncryptedDataGenerator encGen = new PGPEncryptedDataGenerator(new JcePGPDataEncryptorBuilder(algorithmTag)
                 .setWithIntegrityPacket(true).setSecureRandom(new SecureRandom()).setProvider("BC"));
 
-        for (PGPPublicKeyRing receiverPublicKey : receiverPublicKeys) {
+        for (PGPKeyRing receiverPublicKey : receiverPublicKeys) {
             var iterator = receiverPublicKey.getPublicKeys();
             PGPPublicKey elGamalKey = null;
             while(iterator.hasNext()){
-                PGPPublicKey item = iterator.next();
+                // UGLY!
+                Object iterNext = iterator.next();
+                if(!(iterNext instanceof PGPPublicKey)){
+                    throw new PGPException("This was totally unexpected!");
+                }
+                PGPPublicKey item = (PGPPublicKey) iterNext;
                 if(item.isEncryptionKey()){
                     elGamalKey = item;
                     break;

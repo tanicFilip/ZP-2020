@@ -182,12 +182,12 @@ public class Simulation {
         List<PGPPublicKeyRing> elgamalKeys = new ArrayList<>();
         elgamalKeys.add(elgamalPublicKeyRing);
         logger.info("Encrypting message...");
-        try {
+        /*try {
             pgp.encryptMessage(outputFileName, encodedOutputFileName, true, true, ConstantAndNamingUtils.TRIPLE_DES_ALGORITHM_TAG, elgamalKeys);
         } catch (IOException | PGPException | PublicKeyRingDoesNotContainElGamalKey e) {
             logger.error("Failed to encrypt the message. {}", e.getMessage());
         }
-        logger.info("Message encrypted.");
+        logger.info("Message encrypted.");*/
         // SENDER PART ENDS
 
         // RECEIVER PART BEGINS

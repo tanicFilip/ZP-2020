@@ -2,6 +2,7 @@ package gui;
 
 import controller.Controller;
 import javafx.application.Application;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -36,16 +37,24 @@ public class GUI extends Application {
     MenuItem sendMessage = new MenuItem("Encrypt a message");
     MenuItem receiveMessage = new MenuItem("Decrypt a message");
 
-    TableView<KeyRingHumanFormat> keyRingsTablewView = new TableView<>();
+    TableView<KeyRingHumanFormat> keyRingsTableView = new TableView<>();
 
     public void updateInfo(){
-        keyRingsTablewView.getItems().clear();
+        keyRingsTableView.getItems().clear();
 
-        keyRingsTablewView.getItems().addAll(Controller.getKeyRings());
+        keyRingsTableView.getItems().addAll(Controller.getKeyRings());
     }
 
     public KeyRingHumanFormat getSelected(){
-        return keyRingsTablewView.getSelectionModel().getSelectedItem();
+        return keyRingsTableView.getSelectionModel().getSelectedItem();
+    }
+
+    public ObservableList<KeyRingHumanFormat> getPublicKeys(){
+        return keyRingsTableView.getItems();
+    }
+
+    public ObservableList<KeyRingHumanFormat> getPrivateKeys(){
+        return keyRingsTableView.getItems().filtered(keyRingHumanFormat -> keyRingHumanFormat.getKeyType() == KeyRingHumanFormat.KeyType.PAIR);
     }
 
     @Override
@@ -71,7 +80,7 @@ public class GUI extends Application {
                 new KeyCharacterCombination(String.valueOf(KeyCode.D), KeyCombination.CONTROL_DOWN)
         );
         deleteKeyPair.setOnAction(event -> {
-            if(keyRingsTablewView.getSelectionModel().getSelectedItems().size() != 1){
+            if(keyRingsTableView.getSelectionModel().getSelectedItems().size() != 1){
                 Alert alert = new Alert(Alert.AlertType.INFORMATION, "Select a key first", ButtonType.OK);
                 alert.showAndWait();
 
@@ -80,10 +89,10 @@ public class GUI extends Application {
 
             Dialog<String> passwordAndConfirmDialog = new Dialog<>();
             passwordAndConfirmDialog.setTitle("Delete key dialog");
-            if(keyRingsTablewView.getSelectionModel().getSelectedItem().getKeyType() == KeyRingHumanFormat.KeyType.PAIR){
+            if(keyRingsTableView.getSelectionModel().getSelectedItem().getKeyType() == KeyRingHumanFormat.KeyType.PAIR){
                 passwordAndConfirmDialog.setHeaderText("Password is required to delete a key");
             }
-            else if(keyRingsTablewView.getSelectionModel().getSelectedItem().getKeyType() == KeyRingHumanFormat.KeyType.PUBLIC){
+            else if(keyRingsTableView.getSelectionModel().getSelectedItem().getKeyType() == KeyRingHumanFormat.KeyType.PUBLIC){
                 passwordAndConfirmDialog.setHeaderText("Are You sure?");
             }
 
@@ -91,7 +100,7 @@ public class GUI extends Application {
             ButtonType deleteButtonType = new ButtonType("Delete", ButtonData.OK_DONE);
             passwordAndConfirmDialog.getDialogPane().getButtonTypes().addAll(deleteButtonType, ButtonType.CANCEL);
 
-            if(keyRingsTablewView.getSelectionModel().getSelectedItem().getKeyType() == KeyRingHumanFormat.KeyType.PAIR){
+            if(keyRingsTableView.getSelectionModel().getSelectedItem().getKeyType() == KeyRingHumanFormat.KeyType.PAIR){
                 GridPane grid = new GridPane();
                 grid.setHgap(10);
                 grid.setVgap(10);
@@ -114,10 +123,10 @@ public class GUI extends Application {
                 Optional<String> result = passwordAndConfirmDialog.showAndWait();
 
                 if(!result.isEmpty()){
-                    Controller.deleteKeyPair(keyRingsTablewView.getSelectionModel().getSelectedItem(), result.get());
+                    Controller.deleteKeyPair(keyRingsTableView.getSelectionModel().getSelectedItem(), result.get());
                 }
             }
-            else if(keyRingsTablewView.getSelectionModel().getSelectedItem().getKeyType() == KeyRingHumanFormat.KeyType.PUBLIC){
+            else if(keyRingsTableView.getSelectionModel().getSelectedItem().getKeyType() == KeyRingHumanFormat.KeyType.PUBLIC){
                 passwordAndConfirmDialog.setResultConverter(dialogButton -> {
                     if (dialogButton == deleteButtonType) {
                         return "";
@@ -127,7 +136,7 @@ public class GUI extends Application {
 
                 var result = passwordAndConfirmDialog.showAndWait();
 
-                Controller.deleteKeyPair(keyRingsTablewView.getSelectionModel().getSelectedItem(), result.get());
+                Controller.deleteKeyPair(keyRingsTableView.getSelectionModel().getSelectedItem(), result.get());
             }
 
         });
@@ -150,12 +159,12 @@ public class GUI extends Application {
         sendMessage.setAccelerator(
                 new KeyCharacterCombination(String.valueOf(KeyCode.S), KeyCombination.CONTROL_DOWN)
         );
-        Controller.initSendMessage(sendMessage);
+        Controller.initSendMessage(sendMessage, primaryStage);
         receiveMessage = new MenuItem("Receive message");
         receiveMessage.setAccelerator(
                 new KeyCharacterCombination(String.valueOf(KeyCode.R), KeyCombination.CONTROL_DOWN)
         );
-        Controller.initReceiveMessage(receiveMessage);
+        Controller.initReceiveMessage(receiveMessage, primaryStage);
 
         messageMenu.getItems().addAll(sendMessage, receiveMessage);
 
@@ -175,7 +184,7 @@ public class GUI extends Application {
         TableColumn<KeyRingHumanFormat, String> keyTypeColumn = new TableColumn<>("Key type");
         keyTypeColumn.setCellValueFactory(new PropertyValueFactory<>("keyType"));
 
-        keyRingsTablewView.getColumns().addAll(
+        keyRingsTableView.getColumns().addAll(
                 nameColumn, emailColumn, dateCreatedColumn, dateExpiresColumn, fingerprintColumn, keyTypeColumn
         );
 
@@ -183,7 +192,7 @@ public class GUI extends Application {
         updateInfo();
 
         VBox tableViewVBox = new VBox();
-        tableViewVBox.getChildren().addAll(menuBar, keyRingsTablewView);
+        tableViewVBox.getChildren().addAll(menuBar, keyRingsTableView);
         tableViewVBox.setSpacing(10);
 
         root.getChildren().addAll(tableViewVBox);

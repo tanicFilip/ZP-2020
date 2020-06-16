@@ -1,14 +1,18 @@
 package backend;
 
 import gui.KeyRingHumanFormat;
+import gui.SendMessageStage;
+import openpgp.exceptions.PublicKeyRingDoesNotContainElGamalKey;
 import openpgp.pgp.KeyRingManager;
 import openpgp.pgp.PGP;
 import openpgp.pgp.impl.KeyRingManagerImpl;
 import openpgp.pgp.impl.PGPImpl;
 import openpgp.utils.ConstantAndNamingUtils;
+import openpgp.utils.DataReadUtils;
 import openpgp.utils.DataWriteUtils;
 import org.apache.log4j.BasicConfigurator;
 import org.bouncycastle.bcpg.PublicKeyAlgorithmTags;
+import org.bouncycastle.crypto.tls.EncryptionAlgorithm;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import org.bouncycastle.openpgp.*;
@@ -23,6 +27,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.security.Security;
+import java.util.ArrayList;
 import java.util.regex.Pattern;
 
 public class Backend {
@@ -292,6 +297,133 @@ public class Backend {
             e.printStackTrace();
         } catch (PGPException e) {
             e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean sendMessage(
+            File message,
+            byte[] privateFingerprint,
+            byte[][] publicFingerPrints,
+            String password,
+            boolean encrypt,
+            SendMessageStage.ENCRYPTION_ALGORITHM algorithm,
+            boolean sign,
+            boolean useZip,
+            boolean convertToRadix64
+    ){
+        ArrayList<String> filesToDelete = new ArrayList<>();
+        try {
+            String newMessageFilename = message.getAbsolutePath() + ".pgp";
+            String currentFile = message.getAbsolutePath();
+            String nextFile = null;
+
+            if(sign){
+                nextFile = currentFile + "_signed";
+                filesToDelete.add(nextFile);
+
+                PGPSecretKeyRing matchedKeyRing = null;
+                for(PGPSecretKeyRing secretKeyRing : keyRingManagerImpl.readSecretKeyRingCollection()){
+                    boolean match = true;
+                    var currentFingerprint = secretKeyRing.getPublicKey().getFingerprint();
+                    int i = 0;
+                    for(; i < currentFingerprint.length && i < privateFingerprint.length; ++i){
+                        if(privateFingerprint[i] != currentFingerprint[i]){
+                            match = false;
+                            break;
+                        }
+                    }
+                    if(match == true && i == currentFingerprint.length && i == privateFingerprint.length){
+                        matchedKeyRing = secretKeyRing;
+                        break;
+                    }
+                }
+
+                if(matchedKeyRing == null){
+                    throw new PGPException("No such secret key"); // should it ever happen?
+                }
+
+                //Find a way to get the required PGPKeyPair from matchedKeyRing(PGPSecretKeyRing)???
+                byte[] signedMessage = null;//pgpImpl.signMessage(DataReadUtils.readBytesFromFile(currentFile));
+                DataWriteUtils.writeBytesToFile(signedMessage, nextFile);
+
+                currentFile = nextFile;
+            }
+
+            if(encrypt){
+                nextFile = currentFile + "_encrypted";
+                filesToDelete.add(nextFile);
+
+                int algorithmTag = 0;
+                if(algorithm == SendMessageStage.ENCRYPTION_ALGORITHM.ALGO_3DES){
+                    algorithmTag = EncryptionAlgorithm._3DES_EDE_CBC;// correct tag?
+                }
+                else if(algorithm == SendMessageStage.ENCRYPTION_ALGORITHM.ALGO_AES){
+                    algorithmTag = EncryptionAlgorithm.AES_128_CBC;// correct tag?
+                }
+
+                ArrayList<PGPKeyRing> publicKeyRingsThatMatch = new ArrayList<>();
+                ArrayList<PGPKeyRing> allKeys = new ArrayList<>();
+                var iterPrivate = keyRingManagerImpl.readSecretKeyRingCollection().getKeyRings();
+                while(iterPrivate.hasNext()){
+                    allKeys.add(iterPrivate.next());
+                }
+                var iterPublic = keyRingManagerImpl.readPublicKeyRingCollection().getKeyRings();
+                while(iterPublic.hasNext()){
+                    allKeys.add(iterPublic.next());
+                }
+
+                for(byte[] fingerprint : publicFingerPrints){
+                    for(var keyRing : allKeys){
+                        boolean match = true;
+                        var currentFingerprint = keyRing.getPublicKey().getFingerprint();
+                        int i = 0;
+                        for(; i < currentFingerprint.length && i < fingerprint.length; ++i){
+                            if(fingerprint[i] != currentFingerprint[i]){
+                                match = false;
+                                break;
+                            }
+                        }
+                        if(match == true && i == currentFingerprint.length && i == fingerprint.length){
+                            publicKeyRingsThatMatch.add(keyRing);
+                        }
+                    }
+                }
+
+                pgpImpl.encryptMessage(
+                        currentFile,
+                        nextFile,
+                        useZip,
+                        convertToRadix64,
+                        algorithmTag,
+                        publicKeyRingsThatMatch
+                );
+
+                currentFile = nextFile;
+            }
+
+            Files.copy(Path.of(currentFile), Path.of(newMessageFilename));
+
+            for(String fileName : filesToDelete){
+                Files.delete(Path.of(fileName));
+            }
+
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (PGPException e) {
+            e.printStackTrace();
+        } catch (PublicKeyRingDoesNotContainElGamalKey publicKeyRingDoesNotContainElGamalKey) {
+            publicKeyRingDoesNotContainElGamalKey.printStackTrace();
+        }
+
+        for(String fileName : filesToDelete){
+            try {
+                Files.delete(Path.of(fileName));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         return false;
