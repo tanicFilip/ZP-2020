@@ -101,7 +101,14 @@ public class PGPImpl implements PGP {
     @Override
     public byte[] readSignedMessage(byte[] signedMessage, PGPPublicKey publicKey) throws InvalidSignatureException, IOException, PGPException {
         PGPObjectFactory jcaPGPObjectFactory = new BcPGPObjectFactory(signedMessage);
-        PGPOnePassSignatureList pgpOnePassSignatureList = (PGPOnePassSignatureList) jcaPGPObjectFactory.nextObject();
+        var iterator = jcaPGPObjectFactory.iterator();
+        try {
+            iterator.hasNext();
+        } catch (Exception e) {
+            logger.info("This document was not signed");
+            return signedMessage;
+        }
+        PGPOnePassSignatureList pgpOnePassSignatureList = (PGPOnePassSignatureList) iterator.next();
 
         PGPOnePassSignature header = pgpOnePassSignatureList.get(0);
         header.init(
@@ -224,6 +231,11 @@ public class PGPImpl implements PGP {
             }
         }
 
+        if(Objects.nonNull(authorId) || Objects.nonNull(decodedMessage)){
+            logger.info("Message successfully decrypted");
+            return new byte[][]{authorId, decodedMessage};
+        }
+
         var privateKeyRingIterator = keyRingManager.readSecretKeyRingCollection().iterator();
         while(privateKeyRingIterator.hasNext()){
             PGPPublicKey key = privateKeyRingIterator.next().getPublicKey();
@@ -240,7 +252,12 @@ public class PGPImpl implements PGP {
             }
         }
 
-        return new byte[][]{authorId, decodedMessage};
+        if(Objects.nonNull(authorId) || Objects.nonNull(decodedMessage)){
+            logger.info("Message successfully decrypted");
+            return new byte[][]{authorId, decodedMessage};
+        }
+
+        throw new PGPException("Well this was unexpected :(. Generated in: verifyMessage!");
     }
 
     @Override
