@@ -423,7 +423,11 @@ public class Backend {
 
 
     public void cleanTempFiles(){
-        var tempFiles = new File(TEMP_FILES).listFiles();
+        var tempFolder = new File(TEMP_FILES);
+        if(tempFolder.exists() == false){
+            tempFolder.mkdir();
+        }
+        var tempFiles = tempFolder.listFiles();
 
         for(File tempFile : tempFiles){
             try {
