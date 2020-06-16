@@ -1,4 +1,4 @@
-package etf.openpgp.tf160342dsm160425d.backend.openpgp.utils;
+package etf.openpgp.tf160342dsm160425d.openpgp.utils;
 
 import java.io.*;
 

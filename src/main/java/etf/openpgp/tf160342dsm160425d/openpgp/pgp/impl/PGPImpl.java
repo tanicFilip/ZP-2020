@@ -1,9 +1,12 @@
-package etf.openpgp.tf160342dsm160425d.backend.openpgp.pgp.impl;
+package etf.openpgp.tf160342dsm160425d.openpgp.pgp.impl;
 
-import etf.openpgp.tf160342dsm160425d.backend.openpgp.exceptions.IncorrectPasswordException;
-import etf.openpgp.tf160342dsm160425d.backend.openpgp.pgp.KeyRingManager;
-import etf.openpgp.tf160342dsm160425d.backend.openpgp.pgp.PGP;
-import etf.openpgp.tf160342dsm160425d.backend.openpgp.utils.DataReadUtils;
+import etf.openpgp.tf160342dsm160425d.openpgp.exceptions.IncorrectPasswordException;
+import etf.openpgp.tf160342dsm160425d.openpgp.pgp.KeyRingManager;
+import etf.openpgp.tf160342dsm160425d.openpgp.pgp.PGP;
+import etf.openpgp.tf160342dsm160425d.openpgp.utils.DataReadUtils;
+import etf.openpgp.tf160342dsm160425d.openpgp.exceptions.BadMessageException;
+import etf.openpgp.tf160342dsm160425d.openpgp.exceptions.InvalidSignatureException;
+import etf.openpgp.tf160342dsm160425d.openpgp.exceptions.PublicKeyRingDoesNotContainElGamalKey;
 import org.apache.commons.lang3.ArrayUtils;
 import org.bouncycastle.bcpg.*;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -16,9 +19,6 @@ import org.bouncycastle.openpgp.operator.jcajce.*;
 import org.bouncycastle.util.io.Streams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import etf.openpgp.tf160342dsm160425d.backend.openpgp.exceptions.BadMessageException;
-import etf.openpgp.tf160342dsm160425d.backend.openpgp.exceptions.InvalidSignatureException;
-import etf.openpgp.tf160342dsm160425d.backend.openpgp.exceptions.PublicKeyRingDoesNotContainElGamalKey;
 
 import java.io.*;
 import java.nio.charset.Charset;

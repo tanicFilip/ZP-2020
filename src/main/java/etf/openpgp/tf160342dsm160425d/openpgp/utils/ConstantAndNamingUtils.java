@@ -1,10 +1,8 @@
-package etf.openpgp.tf160342dsm160425d.backend.openpgp.utils;
+package etf.openpgp.tf160342dsm160425d.openpgp.utils;
 
-import etf.openpgp.tf160342dsm160425d.backend.openpgp.exceptions.BadUserIdFormat;
+import etf.openpgp.tf160342dsm160425d.openpgp.exceptions.BadUserIdFormat;
 import org.bouncycastle.bcpg.PublicKeyAlgorithmTags;
 import org.bouncycastle.openpgp.PGPEncryptedData;
-
-import java.nio.charset.StandardCharsets;
 
 /**
  * The type Naming utils.

@@ -1,17 +1,17 @@
 package etf.openpgp.tf160342dsm160425d.backend;
 
-import etf.openpgp.tf160342dsm160425d.backend.controller.Controller;
-import etf.openpgp.tf160342dsm160425d.backend.gui.KeyRingHumanFormat;
-import etf.openpgp.tf160342dsm160425d.backend.gui.SendMessageStage;
-import etf.openpgp.tf160342dsm160425d.backend.openpgp.exceptions.IncorrectPasswordException;
-import etf.openpgp.tf160342dsm160425d.backend.openpgp.exceptions.PublicKeyRingDoesNotContainElGamalKey;
-import etf.openpgp.tf160342dsm160425d.backend.openpgp.pgp.KeyRingManager;
-import etf.openpgp.tf160342dsm160425d.backend.openpgp.pgp.PGP;
-import etf.openpgp.tf160342dsm160425d.backend.openpgp.pgp.impl.KeyRingManagerImpl;
-import etf.openpgp.tf160342dsm160425d.backend.openpgp.pgp.impl.PGPImpl;
-import etf.openpgp.tf160342dsm160425d.backend.openpgp.utils.ConstantAndNamingUtils;
-import etf.openpgp.tf160342dsm160425d.backend.openpgp.utils.DataReadUtils;
-import etf.openpgp.tf160342dsm160425d.backend.openpgp.utils.DataWriteUtils;
+import etf.openpgp.tf160342dsm160425d.controller.Controller;
+import etf.openpgp.tf160342dsm160425d.gui.KeyRingHumanFormat;
+import etf.openpgp.tf160342dsm160425d.gui.SendMessageStage;
+import etf.openpgp.tf160342dsm160425d.openpgp.exceptions.IncorrectPasswordException;
+import etf.openpgp.tf160342dsm160425d.openpgp.exceptions.PublicKeyRingDoesNotContainElGamalKey;
+import etf.openpgp.tf160342dsm160425d.openpgp.pgp.KeyRingManager;
+import etf.openpgp.tf160342dsm160425d.openpgp.pgp.PGP;
+import etf.openpgp.tf160342dsm160425d.openpgp.pgp.impl.KeyRingManagerImpl;
+import etf.openpgp.tf160342dsm160425d.openpgp.pgp.impl.PGPImpl;
+import etf.openpgp.tf160342dsm160425d.openpgp.utils.ConstantAndNamingUtils;
+import etf.openpgp.tf160342dsm160425d.openpgp.utils.DataReadUtils;
+import etf.openpgp.tf160342dsm160425d.openpgp.utils.DataWriteUtils;
 import org.apache.log4j.BasicConfigurator;
 import org.bouncycastle.bcpg.PublicKeyAlgorithmTags;
 import org.bouncycastle.crypto.tls.EncryptionAlgorithm;
@@ -158,7 +158,7 @@ public class Backend {
     }
 
     /**
-     * Generate key pair boolean.
+     * Generate key pair.
      *
      * @param name           the name
      * @param email          the email
@@ -197,7 +197,7 @@ public class Backend {
     }
 
     /**
-     * Remove key pair boolean.
+     * Remove key pair.
      *
      * @param name                       the name
      * @param email                      the email
@@ -206,7 +206,6 @@ public class Backend {
      * @param keyType                    the key type
      * @return the boolean
      */
-// TO DO: Detect if key is public or secret and remove accordingly!!!
     public boolean removeKeyPair(String name, String email, String password, byte[] masterPublicKeyFingerprint, KeyRingHumanFormat.KeyType keyType){
         try {
             if(keyType == KeyRingHumanFormat.KeyType.PAIR){
@@ -229,7 +228,7 @@ public class Backend {
     }
 
     /**
-     * Export key boolean.
+     * Export key.
      *
      * @param name                       the name
      * @param email                      the email
@@ -351,7 +350,7 @@ public class Backend {
     }
 
     /**
-     * Import key boolean.
+     * Import key.
      *
      * @param importFrom the import from
      * @return the boolean
@@ -381,7 +380,7 @@ public class Backend {
     }
 
     /**
-     * Send message boolean.
+     * Send message.
      *
      * @param message            the message
      * @param privateFingerprint the private fingerprint
@@ -510,12 +509,11 @@ public class Backend {
     }
 
     /**
-     * Receive message string [ ].
+     * Receive message.
      *
      * @param message the message
      * @return the string [ ]
      */
-// returns String[] instead of boolean, different from other methods in this class
     public String[] receiveMessage(
             File message
     ){

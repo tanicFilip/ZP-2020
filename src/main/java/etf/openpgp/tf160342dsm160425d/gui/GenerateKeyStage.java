@@ -1,6 +1,7 @@
-package etf.openpgp.tf160342dsm160425d.backend.gui;
+package etf.openpgp.tf160342dsm160425d.gui;
 
-import etf.openpgp.tf160342dsm160425d.backend.controller.Controller;
+import etf.openpgp.tf160342dsm160425d.backend.Backend;
+import etf.openpgp.tf160342dsm160425d.controller.Controller;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
@@ -9,15 +10,13 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.scene.control.Alert.*;
 
-import static etf.openpgp.tf160342dsm160425d.backend.Backend.*;
-
 /**
  * The type Generate key stage.
  */
 public class GenerateKeyStage extends Stage {
 
-    private int keySizeDSA = KEY_SIZE_1024;
-    private int keySizeELGAMAL = KEY_SIZE_1024;
+    private int keySizeDSA = Backend.KEY_SIZE_1024;
+    private int keySizeELGAMAL = Backend.KEY_SIZE_1024;
 
     private VBox root;
     private Scene scene;
@@ -56,14 +55,14 @@ public class GenerateKeyStage extends Stage {
         RadioButton key1024RadioDSA = new RadioButton("1024");
         key1024RadioDSA.setSelected(true);
         key1024RadioDSA.setOnAction(event -> {
-            keySizeDSA = KEY_SIZE_1024;
+            keySizeDSA = Backend.KEY_SIZE_1024;
         });
         key1024RadioDSA.setToggleGroup(keySizeDSAGroup);
         radioButtonPane.add(key1024RadioDSA, 0, 1);
 
         RadioButton key2048RadioDSA = new RadioButton("2048");
         key2048RadioDSA.setOnAction(event -> {
-            keySizeDSA = KEY_SIZE_2048;
+            keySizeDSA = Backend.KEY_SIZE_2048;
         });
         key2048RadioDSA.setToggleGroup(keySizeDSAGroup);
         radioButtonPane.add(key2048RadioDSA, 0, 2);
@@ -76,21 +75,21 @@ public class GenerateKeyStage extends Stage {
         RadioButton key1024RadioELGAMAL = new RadioButton("1024");
         key1024RadioELGAMAL.setSelected(true);
         key1024RadioELGAMAL.setOnAction(event -> {
-            keySizeELGAMAL = KEY_SIZE_1024;
+            keySizeELGAMAL = Backend.KEY_SIZE_1024;
         });
         key1024RadioELGAMAL.setToggleGroup(keySizeELGAMALGroup);
         radioButtonPane.add(key1024RadioELGAMAL, 1, 1);
 
         RadioButton key2048RadioELGAMAL = new RadioButton("2048");
         key2048RadioELGAMAL.setOnAction(event -> {
-            keySizeELGAMAL = KEY_SIZE_2048;
+            keySizeELGAMAL = Backend.KEY_SIZE_2048;
         });
         key2048RadioELGAMAL.setToggleGroup(keySizeELGAMALGroup);
         radioButtonPane.add(key2048RadioELGAMAL, 1, 2);
 
         RadioButton key4096RadioELGAMAL = new RadioButton("4096");
         key4096RadioELGAMAL.setOnAction(event -> {
-            keySizeELGAMAL = KEY_SIZE_4096;
+            keySizeELGAMAL = Backend.KEY_SIZE_4096;
         });
         key4096RadioELGAMAL.setToggleGroup(keySizeELGAMALGroup);
         radioButtonPane.add(key4096RadioELGAMAL, 1, 3);

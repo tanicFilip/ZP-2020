@@ -1,7 +1,8 @@
-package etf.openpgp.tf160342dsm160425d.backend.openpgp;
+package etf.openpgp.tf160342dsm160425d.openpgp;
 
-import etf.openpgp.tf160342dsm160425d.backend.openpgp.pgp.impl.KeyRingManagerImpl;
-import etf.openpgp.tf160342dsm160425d.backend.openpgp.pgp.impl.PGPImpl;
+import etf.openpgp.tf160342dsm160425d.openpgp.pgp.impl.KeyRingManagerImpl;
+import etf.openpgp.tf160342dsm160425d.openpgp.pgp.impl.PGPImpl;
+import etf.openpgp.tf160342dsm160425d.openpgp.utils.ConstantAndNamingUtils;
 import org.apache.log4j.BasicConfigurator;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;

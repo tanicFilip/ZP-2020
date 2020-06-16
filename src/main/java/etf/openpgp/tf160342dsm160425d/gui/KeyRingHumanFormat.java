@@ -1,4 +1,4 @@
-package etf.openpgp.tf160342dsm160425d.backend.gui;
+package etf.openpgp.tf160342dsm160425d.gui;
 
 import java.util.Date;
 

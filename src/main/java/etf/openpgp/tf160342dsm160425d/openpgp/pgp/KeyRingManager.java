@@ -1,4 +1,4 @@
-package etf.openpgp.tf160342dsm160425d.backend.openpgp.pgp;
+package etf.openpgp.tf160342dsm160425d.openpgp.pgp;
 
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPKeyPair;

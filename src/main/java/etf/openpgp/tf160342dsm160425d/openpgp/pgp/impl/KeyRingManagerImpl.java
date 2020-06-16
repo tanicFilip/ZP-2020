@@ -1,9 +1,9 @@
-package etf.openpgp.tf160342dsm160425d.backend.openpgp.pgp.impl;
+package etf.openpgp.tf160342dsm160425d.openpgp.pgp.impl;
 
-import etf.openpgp.tf160342dsm160425d.backend.openpgp.pgp.KeyRingManager;
-import etf.openpgp.tf160342dsm160425d.backend.openpgp.pgp.PGP;
-import etf.openpgp.tf160342dsm160425d.backend.openpgp.utils.DataWriteUtils;
-import etf.openpgp.tf160342dsm160425d.backend.openpgp.utils.ConstantAndNamingUtils;
+import etf.openpgp.tf160342dsm160425d.openpgp.pgp.KeyRingManager;
+import etf.openpgp.tf160342dsm160425d.openpgp.pgp.PGP;
+import etf.openpgp.tf160342dsm160425d.openpgp.utils.DataWriteUtils;
+import etf.openpgp.tf160342dsm160425d.openpgp.utils.ConstantAndNamingUtils;
 import org.bouncycastle.bcpg.HashAlgorithmTags;
 import org.bouncycastle.bcpg.PublicKeyAlgorithmTags;
 import org.bouncycastle.openpgp.*;

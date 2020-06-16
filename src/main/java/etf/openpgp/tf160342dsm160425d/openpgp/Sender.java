@@ -1,16 +1,19 @@
-package etf.openpgp.tf160342dsm160425d.backend.openpgp;
+package etf.openpgp.tf160342dsm160425d.openpgp;
 
-import etf.openpgp.tf160342dsm160425d.backend.openpgp.pgp.KeyRingManager;
-import etf.openpgp.tf160342dsm160425d.backend.openpgp.pgp.PGP;
-import etf.openpgp.tf160342dsm160425d.backend.openpgp.pgp.impl.KeyRingManagerImpl;
-import etf.openpgp.tf160342dsm160425d.backend.openpgp.pgp.impl.PGPImpl;
+import etf.openpgp.tf160342dsm160425d.openpgp.pgp.KeyRingManager;
+import etf.openpgp.tf160342dsm160425d.openpgp.pgp.PGP;
+import etf.openpgp.tf160342dsm160425d.openpgp.pgp.impl.KeyRingManagerImpl;
+import etf.openpgp.tf160342dsm160425d.openpgp.pgp.impl.PGPImpl;
+import etf.openpgp.tf160342dsm160425d.openpgp.exceptions.PublicKeyRingDoesNotContainElGamalKey;
+import etf.openpgp.tf160342dsm160425d.openpgp.utils.ConstantAndNamingUtils;
+import etf.openpgp.tf160342dsm160425d.openpgp.utils.DataReadUtils;
+import etf.openpgp.tf160342dsm160425d.openpgp.utils.DataWriteUtils;
 import org.apache.log4j.BasicConfigurator;
 import org.bouncycastle.bcpg.PublicKeyAlgorithmTags;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openpgp.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import etf.openpgp.tf160342dsm160425d.backend.openpgp.exceptions.PublicKeyRingDoesNotContainElGamalKey;
 import etf.openpgp.tf160342dsm160425d.backend.openpgp.utils.*;
 
 import java.io.*;

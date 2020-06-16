@@ -1,7 +1,7 @@
-package etf.openpgp.tf160342dsm160425d.backend.openpgp.pgp;
+package etf.openpgp.tf160342dsm160425d.openpgp.pgp;
 
-import etf.openpgp.tf160342dsm160425d.backend.openpgp.exceptions.IncorrectPasswordException;
-import etf.openpgp.tf160342dsm160425d.backend.openpgp.exceptions.PublicKeyRingDoesNotContainElGamalKey;
+import etf.openpgp.tf160342dsm160425d.openpgp.exceptions.IncorrectPasswordException;
+import etf.openpgp.tf160342dsm160425d.openpgp.exceptions.PublicKeyRingDoesNotContainElGamalKey;
 import org.bouncycastle.openpgp.*;
 
 import java.io.IOException;

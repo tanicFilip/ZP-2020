@@ -1,6 +1,6 @@
-package etf.openpgp.tf160342dsm160425d.backend.gui;
+package etf.openpgp.tf160342dsm160425d.gui;
 
-import etf.openpgp.tf160342dsm160425d.backend.controller.Controller;
+import etf.openpgp.tf160342dsm160425d.controller.Controller;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;

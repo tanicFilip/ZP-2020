@@ -1,6 +1,6 @@
-package etf.openpgp.tf160342dsm160425d.backend.gui;
+package etf.openpgp.tf160342dsm160425d.gui;
 
-import etf.openpgp.tf160342dsm160425d.backend.controller.Controller;
+import etf.openpgp.tf160342dsm160425d.controller.Controller;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
