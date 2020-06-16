@@ -65,7 +65,7 @@ public class PGPImpl implements PGP {
                 new JcePBESecretKeyDecryptorBuilder()
                         .setProvider(BouncyCastleProvider.PROVIDER_NAME).build(password.toCharArray()));
 
-        pgpSignatureGenerator.init(PGPSignature.BINARY_DOCUMENT, extractedPrivateKey );
+        pgpSignatureGenerator.init(PGPSignature.BINARY_DOCUMENT, extractedPrivateKey);
 
         pgpSignatureGenerator
                 .generateOnePassVersion(false)
@@ -133,7 +133,7 @@ public class PGPImpl implements PGP {
         PGPSignature sig = sigList.get(0);
 
         boolean verify = header.verify(sig);
-        if(!verify)
+        if (!verify)
             throw new InvalidSignatureException("Invalid public key");
 
         Byte[] returnMessage = new Byte[message.size()];
@@ -146,14 +146,14 @@ public class PGPImpl implements PGP {
             throws IOException, PGPException, PublicKeyRingDoesNotContainElGamalKey {
 
         OutputStream outputStream;
-        if(shouldRadix)
+        if (shouldRadix)
             outputStream = new ArmoredOutputStream(new FileOutputStream(encryptedFileName));
         else
             outputStream = new FileOutputStream(encryptedFileName);
 
         byte[] data;
 
-        if(shouldZIP)
+        if (shouldZIP)
             data = compressData(sourceFileName);
         else
             data = convertToLiteralData(sourceFileName);
@@ -164,19 +164,19 @@ public class PGPImpl implements PGP {
         for (PGPKeyRing receiverPublicKey : receiverPublicKeys) {
             var iterator = receiverPublicKey.getPublicKeys();
             PGPPublicKey elGamalKey = null;
-            while(iterator.hasNext()){
+            while (iterator.hasNext()) {
                 // UGLY!
                 Object iterNext = iterator.next();
-                if(!(iterNext instanceof PGPPublicKey)){
+                if (!(iterNext instanceof PGPPublicKey)) {
                     throw new PGPException("This was totally unexpected!");
                 }
                 PGPPublicKey item = (PGPPublicKey) iterNext;
-                if(item.isEncryptionKey()){
+                if (item.isEncryptionKey()) {
                     elGamalKey = item;
                     break;
                 }
             }
-            if(Objects.isNull(elGamalKey))
+            if (Objects.isNull(elGamalKey))
                 throw new PublicKeyRingDoesNotContainElGamalKey();
 
             encGen.addMethod(new JcePublicKeyKeyEncryptionMethodGenerator(elGamalKey).setProvider("BC"));
@@ -194,14 +194,14 @@ public class PGPImpl implements PGP {
     public byte[] verifyMessage(String inputFileName, PGPPublicKeyRingCollection receiversPublicKeyRingCollection) {
         byte[] decodedMessage = null;
         var publicKeyRingIterator = receiversPublicKeyRingCollection.iterator();
-        while(publicKeyRingIterator.hasNext()){
+        while (publicKeyRingIterator.hasNext()) {
             PGPPublicKey key = publicKeyRingIterator.next().getPublicKey();
-            try{
+            try {
                 logger.info("Verifying signed message...");
                 decodedMessage = readSignedMessage(DataReadUtils.readBytesFromFile(inputFileName), key);
                 logger.info("Verified signed message");
                 break;
-            }catch(InvalidSignatureException | IOException e) {
+            } catch (InvalidSignatureException | IOException e) {
                 logger.warn("Failed to decrypt the message. Error message: {}", e.getMessage());
             } catch (Exception e) {
                 e.printStackTrace();
@@ -216,43 +216,43 @@ public class PGPImpl implements PGP {
         byte[] authorId = null;
 
         var publicKeyRingIterator = keyRingManager.readPublicKeyRingCollection().iterator();
-        while(publicKeyRingIterator.hasNext()){
+        while (publicKeyRingIterator.hasNext()) {
             PGPPublicKey key = publicKeyRingIterator.next().getPublicKey();
-            try{
+            try {
                 logger.info("Verifying signed message...");
                 decodedMessage = readSignedMessage(DataReadUtils.readBytesFromFile(inputFileName), key);
                 authorId = key.getUserIDs().next().getBytes(Charset.defaultCharset());
                 logger.info("Verified signed message");
                 break;
-            }catch(InvalidSignatureException | IOException e) {
+            } catch (InvalidSignatureException | IOException e) {
                 logger.warn("Failed to decrypt the message. Error message: {}", e.getMessage());
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
-        if(Objects.nonNull(authorId) || Objects.nonNull(decodedMessage)){
+        if (Objects.nonNull(authorId) || Objects.nonNull(decodedMessage)) {
             logger.info("Message successfully decrypted");
             return new byte[][]{authorId, decodedMessage};
         }
 
         var privateKeyRingIterator = keyRingManager.readSecretKeyRingCollection().iterator();
-        while(privateKeyRingIterator.hasNext()){
+        while (privateKeyRingIterator.hasNext()) {
             PGPPublicKey key = privateKeyRingIterator.next().getPublicKey();
-            try{
+            try {
                 logger.info("Verifying signed message...");
                 decodedMessage = readSignedMessage(DataReadUtils.readBytesFromFile(inputFileName), key);
                 authorId = key.getUserIDs().next().getBytes(Charset.defaultCharset());
                 logger.info("Verified signed message");
                 break;
-            }catch(InvalidSignatureException | IOException e) {
+            } catch (InvalidSignatureException | IOException e) {
                 logger.warn("Failed to decrypt the message. Error message: {}", e.getMessage());
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
-        if(Objects.nonNull(authorId) || Objects.nonNull(decodedMessage)){
+        if (Objects.nonNull(authorId) || Objects.nonNull(decodedMessage)) {
             logger.info("Message successfully decrypted");
             return new byte[][]{authorId, decodedMessage};
         }
@@ -264,20 +264,20 @@ public class PGPImpl implements PGP {
     public void decryptFile(String inputFileName, String outputFileName, String password, PGPSecretKeyRingCollection secretKeyRingCollection) throws IncorrectPasswordException {
         var elgamalIterator = secretKeyRingCollection.getKeyRings();
         PGPSecretKeyRing targetSecretKeyRing = null;
-        while(elgamalIterator.hasNext()) {
+        while (elgamalIterator.hasNext()) {
 
             var elgamalKeyRing = elgamalIterator.next();
             var elgamalKeyRingIterator = elgamalKeyRing.iterator();
             PGPSecretKey secretKey = null;
-            while(elgamalKeyRingIterator.hasNext()) {
+            while (elgamalKeyRingIterator.hasNext()) {
                 var item = elgamalKeyRingIterator.next();
-                if(item.getPublicKey().getAlgorithm() == PublicKeyAlgorithmTags.ELGAMAL_ENCRYPT){
+                if (item.getPublicKey().getAlgorithm() == PublicKeyAlgorithmTags.ELGAMAL_ENCRYPT) {
                     secretKey = item;
                     targetSecretKeyRing = elgamalKeyRing;
                     break;
                 }
             }
-            if(secretKey == null){
+            if (secretKey == null) {
                 continue;
             }
 
@@ -311,7 +311,13 @@ public class PGPImpl implements PGP {
             var pgpObjectFactory = new JcaPGPObjectFactory(bufferedInputStream);
             PGPEncryptedDataList pgpEncryptedDataList;
             var nextObject = pgpObjectFactory.nextObject();
+            InputStream clear = null;
 
+            // This was not even encrypted :P
+            if(nextObject instanceof PGPOnePassSignatureList){
+                logger.info("This message was not encrypted using aes or triple des");
+                return;
+            }
 
             // the first object might be a PGP marker packet.
             if (nextObject instanceof PGPEncryptedDataList) {
@@ -323,7 +329,7 @@ public class PGPImpl implements PGP {
             var pgpPbeEncryptedData = (PGPPublicKeyEncryptedData) pgpEncryptedDataList.get(0);
 
             // decrypted stream
-            InputStream clear = pgpPbeEncryptedData.getDataStream(
+            clear = pgpPbeEncryptedData.getDataStream(
                     new JcePublicKeyDataDecryptorFactoryBuilder().build(pgpPrivateKey)
             );
 
@@ -348,10 +354,10 @@ public class PGPImpl implements PGP {
             if (!pgpPbeEncryptedData.isIntegrityProtected() || !pgpPbeEncryptedData.verify()) {
                 throw new BadMessageException();
             }
-        }finally {
-            if(Objects.nonNull(fOut))
+        } finally {
+            if (Objects.nonNull(fOut))
                 fOut.close();
-            if(Objects.nonNull(bufferedInputStream))
+            if (Objects.nonNull(bufferedInputStream))
                 bufferedInputStream.close();
         }
     }

@@ -15,6 +15,7 @@ import javafx.stage.Stage;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -221,7 +222,7 @@ public class SendMessageStage extends Stage {
                 Controller.sendMessage(
                         selectedFile,
                         privateKeyFingerprint,
-                        publicKeyFingerprints.toArray(new String[0]),
+                        Objects.nonNull(publicKeyFingerprints) ? publicKeyFingerprints.toArray(new String[0]) : null,
                         result.get(),
                         encrypt,
                         algo,
