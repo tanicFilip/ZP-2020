@@ -1,5 +1,7 @@
 package etf.openpgp.tf160342dsm160425d.backend.openpgp.pgp.impl;
 
+import etf.openpgp.tf160342dsm160425d.backend.openpgp.exceptions.IncorrectPasswordException;
+import etf.openpgp.tf160342dsm160425d.backend.openpgp.pgp.KeyRingManager;
 import etf.openpgp.tf160342dsm160425d.backend.openpgp.pgp.PGP;
 import etf.openpgp.tf160342dsm160425d.backend.openpgp.utils.DataReadUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -19,6 +21,7 @@ import etf.openpgp.tf160342dsm160425d.backend.openpgp.exceptions.InvalidSignatur
 import etf.openpgp.tf160342dsm160425d.backend.openpgp.exceptions.PublicKeyRingDoesNotContainElGamalKey;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.security.*;
 import java.util.ArrayList;
 import java.util.Date;
@@ -195,8 +198,49 @@ public class PGPImpl implements PGP {
     }
 
     @Override
-    public void decryptFile(String inputFileName, String outputFileName, String password, PGPSecretKeyRingCollection secretKeyRingCollection) {
+    public byte[][] verifyMessage(String inputFileName, KeyRingManager keyRingManager) throws IOException, PGPException {
+        byte[] decodedMessage = null;
+        byte[] authorId = null;
+
+        var publicKeyRingIterator = keyRingManager.readPublicKeyRingCollection().iterator();
+        while(publicKeyRingIterator.hasNext()){
+            PGPPublicKey key = publicKeyRingIterator.next().getPublicKey();
+            try{
+                logger.info("Verifying signed message...");
+                decodedMessage = readSignedMessage(DataReadUtils.readBytesFromFile(inputFileName), key);
+                authorId = key.getUserIDs().next().getBytes(Charset.defaultCharset());
+                logger.info("Verified signed message");
+                break;
+            }catch(InvalidSignatureException | IOException e) {
+                logger.warn("Failed to decrypt the message. Error message: {}", e.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        var privateKeyRingIterator = keyRingManager.readSecretKeyRingCollection().iterator();
+        while(privateKeyRingIterator.hasNext()){
+            PGPPublicKey key = privateKeyRingIterator.next().getPublicKey();
+            try{
+                logger.info("Verifying signed message...");
+                decodedMessage = readSignedMessage(DataReadUtils.readBytesFromFile(inputFileName), key);
+                authorId = key.getUserIDs().next().getBytes(Charset.defaultCharset());
+                logger.info("Verified signed message");
+                break;
+            }catch(InvalidSignatureException | IOException e) {
+                logger.warn("Failed to decrypt the message. Error message: {}", e.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        return new byte[][]{authorId, decodedMessage};
+    }
+
+    @Override
+    public void decryptFile(String inputFileName, String outputFileName, String password, PGPSecretKeyRingCollection secretKeyRingCollection) throws IncorrectPasswordException {
         var elgamalIterator = secretKeyRingCollection.getKeyRings();
+        PGPSecretKeyRing targetSecretKeyRing = null;
         while(elgamalIterator.hasNext()) {
 
             var elgamalKeyRing = elgamalIterator.next();
@@ -206,6 +250,7 @@ public class PGPImpl implements PGP {
                 var item = elgamalKeyRingIterator.next();
                 if(item.getPublicKey().getAlgorithm() == PublicKeyAlgorithmTags.ELGAMAL_ENCRYPT){
                     secretKey = item;
+                    targetSecretKeyRing = elgamalKeyRing;
                     break;
                 }
             }
@@ -219,8 +264,15 @@ public class PGPImpl implements PGP {
                 readEncryptedFile(inputFileName, outputFileName, secretKey.extractPrivateKey(decryptorFactory));
                 logger.info("Decrypted message.");
                 break;
-            }catch (Exception e){
+            } catch (BadMessageException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (PGPException e) {
+                e.printStackTrace();
                 logger.info("Wrong key, try again");
+                //check if this throws a NullPointerException
+                throw new IncorrectPasswordException(targetSecretKeyRing.getPublicKey().getUserIDs().next());
             }
         }
     }

@@ -1,13 +1,16 @@
 package etf.openpgp.tf160342dsm160425d.backend;
 
+import etf.openpgp.tf160342dsm160425d.backend.controller.Controller;
 import etf.openpgp.tf160342dsm160425d.backend.gui.KeyRingHumanFormat;
 import etf.openpgp.tf160342dsm160425d.backend.gui.SendMessageStage;
+import etf.openpgp.tf160342dsm160425d.backend.openpgp.exceptions.IncorrectPasswordException;
 import etf.openpgp.tf160342dsm160425d.backend.openpgp.exceptions.PublicKeyRingDoesNotContainElGamalKey;
 import etf.openpgp.tf160342dsm160425d.backend.openpgp.pgp.KeyRingManager;
 import etf.openpgp.tf160342dsm160425d.backend.openpgp.pgp.PGP;
 import etf.openpgp.tf160342dsm160425d.backend.openpgp.pgp.impl.KeyRingManagerImpl;
 import etf.openpgp.tf160342dsm160425d.backend.openpgp.pgp.impl.PGPImpl;
 import etf.openpgp.tf160342dsm160425d.backend.openpgp.utils.ConstantAndNamingUtils;
+import etf.openpgp.tf160342dsm160425d.backend.openpgp.utils.DataReadUtils;
 import etf.openpgp.tf160342dsm160425d.backend.openpgp.utils.DataWriteUtils;
 import org.apache.log4j.BasicConfigurator;
 import org.bouncycastle.bcpg.PublicKeyAlgorithmTags;
@@ -20,6 +23,7 @@ import org.bouncycastle.openpgp.operator.jcajce.JcePBESecretKeyDecryptorBuilder;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
@@ -342,7 +346,7 @@ public class Backend {
                 }
 
                 //Find a way to get the required PGPKeyPair from matchedKeyRing(PGPSecretKeyRing)???
-                byte[] signedMessage = null;//pgpImpl.signMessage(DataReadUtils.readBytesFromFile(currentFile));
+                byte[] signedMessage = pgpImpl.signMessage(DataReadUtils.readBytesFromFile(currentFile), password, matchedKeyRing);
                 DataWriteUtils.writeBytesToFile(signedMessage, nextFile);
 
                 currentFile = nextFile;
@@ -414,7 +418,60 @@ public class Backend {
         return false;
     }
 
+    // returns String[] instead of boolean, different from other methods in this class
+    public String[] receiveMessage(
+            File message
+    ){
+        String directory = message.getParent();
+        String outputFilename = directory + "/" + message.getName().replace(".pgp", "");
 
+        try {
+            pgpImpl.decryptFile(
+                    message.getAbsolutePath(),
+                    outputFilename,
+                    "",
+                    keyRingManagerImpl.readSecretKeyRingCollection()
+            );
+        } catch (IncorrectPasswordException e) {
+            e.printStackTrace();
+
+            String password = Controller.getPasswordForKeyWithId(e.getMessage());
+
+            try {
+                pgpImpl.decryptFile(
+                        message.getAbsolutePath(),
+                        outputFilename,
+                        password,
+                        keyRingManagerImpl.readSecretKeyRingCollection()
+                );
+            } catch (Exception ex) {
+                ex.printStackTrace();
+
+                return null;
+            }
+
+        } catch (PGPException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            var authorIdAndDecodedMessage = pgpImpl.verifyMessage(outputFilename, keyRingManagerImpl);
+            DataWriteUtils.writeBytesToFile(authorIdAndDecodedMessage[1], outputFilename);
+
+            String authorId = new String(authorIdAndDecodedMessage[0], Charset.defaultCharset());
+            String messageString = new String(authorIdAndDecodedMessage[1], Charset.defaultCharset());
+
+            return new String[]{authorId, messageString};
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (PGPException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
 
     public void cleanTempFiles(){
         var tempFolder = new File(TEMP_FILES);

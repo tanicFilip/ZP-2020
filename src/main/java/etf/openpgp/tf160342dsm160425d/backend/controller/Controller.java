@@ -4,9 +4,10 @@ import etf.openpgp.tf160342dsm160425d.backend.Backend;
 import etf.openpgp.tf160342dsm160425d.backend.gui.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.MenuItem;
+import javafx.scene.control.*;
+import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.apache.commons.lang3.StringUtils;
@@ -15,6 +16,7 @@ import org.bouncycastle.util.encoders.Base64;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Optional;
 
 /**
  * Controller class used to call util methods from pgp package
@@ -272,6 +274,67 @@ public class Controller {
         }
     }
 
+    public static String getPasswordForKeyWithId(String userId){
+        String[] userCredentials = getUserCredentials(userId);
+        if(userCredentials == null){
+            userCredentials = new String[]{" ", " "};
+        }
+
+        Dialog<String> passwordAndConfirmDialog = new Dialog<>();
+        passwordAndConfirmDialog.setTitle("Send message dialog");
+        passwordAndConfirmDialog.setHeaderText(
+                "Password is required for " + userCredentials[0] + " <" + userCredentials[1] + "> key"
+        );
+
+        ButtonType deleteButtonType = new ButtonType("Send", ButtonBar.ButtonData.OK_DONE);
+        passwordAndConfirmDialog.getDialogPane().getButtonTypes().addAll(deleteButtonType, ButtonType.CANCEL);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+        PasswordField password = new PasswordField();
+        password.setPromptText("password");
+
+        grid.add(new Label("Password:"), 0, 0);
+        grid.add(password, 1, 0);
+
+        passwordAndConfirmDialog.getDialogPane().setContent(grid);
+        passwordAndConfirmDialog.setResultConverter(dialogButton -> {
+            if (dialogButton == deleteButtonType) {
+                return password.getText();
+            }
+            return null;
+        });
+
+        Optional<String> result = passwordAndConfirmDialog.showAndWait();
+
+        if (!result.isEmpty()) {
+            return result.get();
+        }
+        else{
+            return null;
+        }
+    }
+
+    public static void receiveMessage(File message){
+        String[] authorIdAndDecodedMessage = Backend.getInstance().receiveMessage(message);
+
+        if(authorIdAndDecodedMessage != null){
+            String[] authorId = getUserCredentials(authorIdAndDecodedMessage[0]);
+            if(authorId != null){
+                String infoMessage = "Success!\n\n" +
+                        authorId[0] + " <" + authorId[1] + "> wrote:\n\n" +
+                        authorIdAndDecodedMessage[1];
+
+                receiveMessageStage.alertInfo(infoMessage);
+                receiveMessageStage.close();
+            }
+        }
+        else{
+            receiveMessageStage.alertInfo("Failed!");
+        }
+    }
 
     public static void cleanTempFiles(){
         Backend.getInstance().cleanTempFiles();

@@ -1,5 +1,6 @@
 package etf.openpgp.tf160342dsm160425d.backend.openpgp.pgp;
 
+import etf.openpgp.tf160342dsm160425d.backend.openpgp.exceptions.IncorrectPasswordException;
 import etf.openpgp.tf160342dsm160425d.backend.openpgp.exceptions.PublicKeyRingDoesNotContainElGamalKey;
 import org.bouncycastle.openpgp.*;
 
@@ -22,6 +23,7 @@ public interface PGP {
 
     // decryption
     byte[] verifyMessage(String inputFileName, PGPPublicKeyRingCollection receiversPublicKeyRingCollection);
-    void decryptFile(String inputFileName, String outputFileName, String password, PGPSecretKeyRingCollection secretKeyRingCollection);
+    byte[][] verifyMessage(String inputFileName, KeyRingManager keyRingManager) throws IOException, PGPException;
+    void decryptFile(String inputFileName, String outputFileName, String password, PGPSecretKeyRingCollection secretKeyRingCollection) throws IncorrectPasswordException;
 
 }
