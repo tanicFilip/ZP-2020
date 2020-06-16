@@ -323,7 +323,7 @@ public class Backend {
             String nextFile = null;
 
             if(sign){
-                nextFile = currentFile + "_signed";
+                nextFile = TEMP_FILES + "/_signed";
                 filesToDelete.add(nextFile);
 
                 PGPSecretKeyRing matchedKeyRing = null;
@@ -355,7 +355,7 @@ public class Backend {
             }
 
             if(encrypt){
-                nextFile = currentFile + "_encrypted";
+                nextFile = TEMP_FILES + "_encrypted";
                 filesToDelete.add(nextFile);
 
                 int algorithmTag = 0;
