@@ -28,8 +28,14 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * The type Pgp.
+ */
 public class PGPImpl implements PGP {
 
+    /**
+     * The constant BC_PROVIDER.
+     */
     public static final String BC_PROVIDER = "BC";
     private static final Logger logger = LoggerFactory.getLogger(PGPImpl.class);
 

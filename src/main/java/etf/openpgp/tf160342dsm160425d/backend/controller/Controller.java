@@ -23,11 +23,29 @@ import java.util.Optional;
  */
 public class Controller {
 
+    /**
+     * The Generate key stage.
+     */
     static GenerateKeyStage generateKeyStage;
+    /**
+     * The Export key stage.
+     */
     static ExportKeyStage exportKeyStage;
+    /**
+     * The Send message stage.
+     */
     static SendMessageStage sendMessageStage;
+    /**
+     * The Receive message stage.
+     */
     static ReceiveMessageStage receiveMessageStage;
 
+    /**
+     * Init generate key pair.
+     *
+     * @param menuItem     the menu item
+     * @param primaryStage the primary stage
+     */
     public static void initGenerateKeyPair(MenuItem menuItem, Stage primaryStage){
         menuItem.setOnAction(value -> {
             generateKeyStage = new GenerateKeyStage(primaryStage);
@@ -36,6 +54,12 @@ public class Controller {
         });
     }
 
+    /**
+     * Init import key.
+     *
+     * @param menuItem     the menu item
+     * @param primaryStage the primary stage
+     */
     public static void initImportKey(MenuItem menuItem, Stage primaryStage){
         menuItem.setOnAction(value -> {
             FileChooser importFromFile = new FileChooser();
@@ -57,6 +81,12 @@ public class Controller {
 
     private static KeyRingHumanFormat.KeyType selectedType = KeyRingHumanFormat.KeyType.PUBLIC;
 
+    /**
+     * Init export key.
+     *
+     * @param menuItem     the menu item
+     * @param primaryStage the primary stage
+     */
     public static void initExportKey(MenuItem menuItem, Stage primaryStage){
         menuItem.setOnAction(value -> {
             if(GUI.getInstance().getSelected() == null){
@@ -70,6 +100,12 @@ public class Controller {
         });
     }
 
+    /**
+     * Init send message.
+     *
+     * @param menuItem     the menu item
+     * @param primaryStage the primary stage
+     */
     public static void initSendMessage(MenuItem menuItem, Stage primaryStage){
         menuItem.setOnAction(value -> {
             sendMessageStage = new SendMessageStage(primaryStage);
@@ -78,6 +114,12 @@ public class Controller {
         });
     }
 
+    /**
+     * Init receive message.
+     *
+     * @param menuItem     the menu item
+     * @param primaryStage the primary stage
+     */
     public static void initReceiveMessage(MenuItem menuItem, Stage primaryStage){
         menuItem.setOnAction(value -> {
             receiveMessageStage = new ReceiveMessageStage(primaryStage);
@@ -86,6 +128,12 @@ public class Controller {
         });
     }
 
+    /**
+     * Init back button.
+     *
+     * @param button          the button
+     * @param sceneToNavigate the scene to navigate
+     */
     public static void initBackButton(Button button, Scene sceneToNavigate){
         button.setOnAction(value -> {
             System.out.println("action 1");
@@ -103,6 +151,11 @@ public class Controller {
         return userId.split("__");
     }
 
+    /**
+     * Get key rings observable list.
+     *
+     * @return the observable list
+     */
     public static ObservableList<KeyRingHumanFormat> getKeyRings(){
         var secretKeyRingCollection = Backend.getInstance().getSecretKeyRingCollection();
         var publicKeyRingCollection = Backend.getInstance().getPublicKeyRingCollection();
@@ -173,6 +226,15 @@ public class Controller {
         return FXCollections.observableList(keyRings);
     }
 
+    /**
+     * Generate key pair.
+     *
+     * @param name           the name
+     * @param email          the email
+     * @param password       the password
+     * @param keySizeDSA     the key size dsa
+     * @param keySizeELGAMAL the key size elgamal
+     */
     public static void generateKeyPair(String name, String email, String password, int keySizeDSA, int keySizeELGAMAL){
         boolean validData = true;
         if(StringUtils.isEmpty(password) || StringUtils.isEmpty(email) || StringUtils.isEmpty(name)){
@@ -193,6 +255,12 @@ public class Controller {
         }
     }
 
+    /**
+     * Delete key pair.
+     *
+     * @param keyRingHumanFormat the key ring human format
+     * @param password           the password
+     */
     public static void deleteKeyPair(KeyRingHumanFormat keyRingHumanFormat, String password){
         byte[] masterKeyFingerprint = Base64.decode(keyRingHumanFormat.getMasterKeyFingerprint());
 
@@ -212,6 +280,14 @@ public class Controller {
         }
     }
 
+    /**
+     * Export key.
+     *
+     * @param keyRingHumanFormat the key ring human format
+     * @param exportKeyType      the export key type
+     * @param password           the password
+     * @param exportTo           the export to
+     */
     public static void exportKey(KeyRingHumanFormat keyRingHumanFormat, KeyRingHumanFormat.KeyType exportKeyType, String password, File exportTo){
         byte[] masterKeyFingerprint = Base64.decode(keyRingHumanFormat.getMasterKeyFingerprint());
 
@@ -232,6 +308,19 @@ public class Controller {
         }
     }
 
+    /**
+     * Send message.
+     *
+     * @param message            the message
+     * @param privateFingerprint the private fingerprint
+     * @param publicFingerPrints the public finger prints
+     * @param password           the password
+     * @param encrypt            the encrypt
+     * @param algorithm          the algorithm
+     * @param sign               the sign
+     * @param useZip             the use zip
+     * @param convertToRadix64   the convert to radix 64
+     */
     public static void sendMessage(
             File message,
             String privateFingerprint,
@@ -274,6 +363,12 @@ public class Controller {
         }
     }
 
+    /**
+     * Get password for key with id string.
+     *
+     * @param userId the user id
+     * @return the string
+     */
     public static String getPasswordForKeyWithId(String userId){
         String[] userCredentials = getUserCredentials(userId);
         if(userCredentials == null){
@@ -317,6 +412,11 @@ public class Controller {
         }
     }
 
+    /**
+     * Receive message.
+     *
+     * @param message the message
+     */
     public static void receiveMessage(File message){
         String[] authorIdAndDecodedMessage = Backend.getInstance().receiveMessage(message);
 
@@ -336,6 +436,9 @@ public class Controller {
         }
     }
 
+    /**
+     * Clean temp files.
+     */
     public static void cleanTempFiles(){
         Backend.getInstance().cleanTempFiles();
     }

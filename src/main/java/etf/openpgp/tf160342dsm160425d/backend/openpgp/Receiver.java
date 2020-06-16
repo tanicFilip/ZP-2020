@@ -10,6 +10,9 @@ import etf.openpgp.tf160342dsm160425d.backend.openpgp.utils.*;
 
 import java.security.Security;
 
+/**
+ * The type Receiver.
+ */
 public class Receiver {
     private static final String email = "reciever@mail.com";
     private static final String receivedMessageFileName = "receivedMessage.txt";
@@ -17,17 +20,35 @@ public class Receiver {
 
     private static final Logger logger = LoggerFactory.getLogger(Sender.class);
 
+    /**
+     * The constant pgpImpl.
+     */
     public static PGPImpl pgpImpl = new PGPImpl();
+    /**
+     * The constant keyRingManagerImpl.
+     */
     public static KeyRingManagerImpl keyRingManagerImpl = new KeyRingManagerImpl(ConstantAndNamingUtils.RECEIVER_SECRET_KEY_RING, ConstantAndNamingUtils.RECEIVER_PUBLIC_KEY_RING);
 
+    /**
+     * Configure logging.
+     */
     public static void configureLogging(){
         BasicConfigurator.configure();
     }
 
+    /**
+     * Init security provider.
+     */
     public static void initSecurityProvider(){
         Security.addProvider(new BouncyCastleProvider());
     }
 
+    /**
+     * The entry point of application.
+     *
+     * @param args the input arguments
+     * @throws Exception the exception
+     */
     public static void main(String[] args) throws Exception {
 /*
         initSecurityProvider();

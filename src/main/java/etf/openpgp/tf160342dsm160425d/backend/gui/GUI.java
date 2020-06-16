@@ -18,10 +18,18 @@ import javafx.stage.Stage;
 
 import java.util.Optional;
 
+/**
+ * The type Gui.
+ */
 public class GUI extends Application {
 
     private static GUI instance;
 
+    /**
+     * Gets instance.
+     *
+     * @return the instance
+     */
     public static GUI getInstance() {
         return instance;
     }
@@ -29,30 +37,69 @@ public class GUI extends Application {
     private static Stage primaryStage;
     private static Scene mainScene;
 
+    /**
+     * The Generate key pair.
+     */
     MenuItem generateKeyPair = new MenuItem("Generate a new key pair");
+    /**
+     * The Delete key pair.
+     */
     MenuItem deleteKeyPair = new MenuItem("Delete a key pair");
+    /**
+     * The Import key.
+     */
     MenuItem importKey = new MenuItem("Import a key");
+    /**
+     * The Export key.
+     */
     MenuItem exportKey = new MenuItem("Export a key");
 
+    /**
+     * The Send message.
+     */
     MenuItem sendMessage = new MenuItem("Encrypt a message");
+    /**
+     * The Receive message.
+     */
     MenuItem receiveMessage = new MenuItem("Decrypt a message");
 
+    /**
+     * The Key rings table view.
+     */
     TableView<KeyRingHumanFormat> keyRingsTableView = new TableView<>();
 
+    /**
+     * Update info.
+     */
     public void updateInfo(){
         keyRingsTableView.getItems().clear();
 
         keyRingsTableView.getItems().addAll(Controller.getKeyRings());
     }
 
+    /**
+     * Get selected key ring human format.
+     *
+     * @return the key ring human format
+     */
     public KeyRingHumanFormat getSelected(){
         return keyRingsTableView.getSelectionModel().getSelectedItem();
     }
 
+    /**
+     * Get public keys observable list.
+     *
+     * @return the observable list
+     */
     public ObservableList<KeyRingHumanFormat> getPublicKeys(){
         return keyRingsTableView.getItems();
     }
 
+    /**
+     * Get private keys observable list.
+     *
+     * @return the observable list
+     */
     public ObservableList<KeyRingHumanFormat> getPrivateKeys(){
         return keyRingsTableView.getItems().filtered(keyRingHumanFormat -> keyRingHumanFormat.getKeyType() == KeyRingHumanFormat.KeyType.PAIR);
     }
@@ -204,14 +251,29 @@ public class GUI extends Application {
         primaryStage.show();
     }
 
+    /**
+     * The entry point of application.
+     *
+     * @param args the input arguments
+     */
     public static void main(String[] args) {
         launch();
     }
 
+    /**
+     * Set scene.
+     *
+     * @param sceneToSet the scene to set
+     */
     public static void setScene(Scene sceneToSet){
         primaryStage.setScene(sceneToSet);
     }
 
+    /**
+     * Alert info.
+     *
+     * @param message the message
+     */
     public void alertInfo(String message){
         Alert alert = new Alert(Alert.AlertType.INFORMATION, message, ButtonType.OK);
         alert.showAndWait();

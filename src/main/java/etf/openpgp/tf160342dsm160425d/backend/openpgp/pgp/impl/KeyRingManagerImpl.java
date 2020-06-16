@@ -33,6 +33,12 @@ public class KeyRingManagerImpl implements KeyRingManager {
     private String publicKeyRingCollectionFilename;
     private PGP pgp = new PGPImpl();
 
+    /**
+     * Instantiates a new Key ring manager.
+     *
+     * @param secretKeyRingCollectionFilename the secret key ring collection filename
+     * @param publicKeyRingCollectionFilename the public key ring collection filename
+     */
     public KeyRingManagerImpl(String secretKeyRingCollectionFilename, String publicKeyRingCollectionFilename) {
         this.secretKeyRingCollectionFilename = secretKeyRingCollectionFilename;
         this.publicKeyRingCollectionFilename = publicKeyRingCollectionFilename;
@@ -234,6 +240,13 @@ public class KeyRingManagerImpl implements KeyRingManager {
 
     }
 
+    /**
+     * Generate empty secret key ring collection pgp secret key ring collection.
+     *
+     * @return the pgp secret key ring collection
+     * @throws IOException  the io exception
+     * @throws PGPException the pgp exception
+     */
     public PGPSecretKeyRingCollection generateEmptySecretKeyRingCollection() throws IOException, PGPException {
         InputStream inputStream = PGPUtil.getDecoderStream(InputStream.nullInputStream());
         return new BcPGPSecretKeyRingCollection(inputStream);

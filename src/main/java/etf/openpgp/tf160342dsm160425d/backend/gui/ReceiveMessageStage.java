@@ -15,6 +15,9 @@ import javafx.stage.Stage;
 
 import java.io.File;
 
+/**
+ * The type Receive message stage.
+ */
 public class ReceiveMessageStage extends Stage {
 
     private VBox root;
@@ -22,6 +25,11 @@ public class ReceiveMessageStage extends Stage {
 
     private File selectedFile;
 
+    /**
+     * Instantiates a new Receive message stage.
+     *
+     * @param primaryStage the primary stage
+     */
     public ReceiveMessageStage(Stage primaryStage) {
         this.initModality(Modality.APPLICATION_MODAL);
         this.initOwner(primaryStage);
@@ -61,6 +69,11 @@ public class ReceiveMessageStage extends Stage {
         this.setScene(this.scene);
     }
 
+    /**
+     * Alert info.
+     *
+     * @param message the message
+     */
     public void alertInfo(String message){
         Alert alert = new Alert(Alert.AlertType.INFORMATION, message, ButtonType.OK);
         alert.showAndWait();

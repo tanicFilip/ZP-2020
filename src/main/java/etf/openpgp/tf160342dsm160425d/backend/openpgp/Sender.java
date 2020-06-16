@@ -17,35 +17,86 @@ import java.io.*;
 import java.security.NoSuchAlgorithmException;
 import java.security.Security;
 
+/**
+ * The type Sender.
+ */
 public class Sender {
 
     private static final Logger logger = LoggerFactory.getLogger(Sender.class);
     private static final String email = "marko@marko.com";
+    /**
+     * The constant password.
+     */
     public static final String password = "password";
 
 
+    /**
+     * The constant senderKeyringFileName.
+     */
     public static final String senderKeyringFileName = "sender-keyring.gpg";
+    /**
+     * The constant receiverKeyringFileName.
+     */
     public static final String receiverKeyringFileName = "receiver-keyring.gpg";
+    /**
+     * The constant inputFileName.
+     */
     public static final String inputFileName = "input.txt";
+    /**
+     * The constant outputFileName.
+     */
     public static final String outputFileName = "signed-input.asc";
+    /**
+     * The constant encodedOutputFileName.
+     */
     public static final String encodedOutputFileName = "encoded-input.asc";
 
+    /**
+     * The constant DSA.
+     */
     public static final String DSA = "DSA";
+    /**
+     * The constant keySize.
+     */
     public static final int keySize = 1024;
 
+    /**
+     * The constant pgp.
+     */
     public static PGP pgp = new PGPImpl();
+    /**
+     * The constant senderKeyRingManager.
+     */
     public static KeyRingManager senderKeyRingManager = new KeyRingManagerImpl(ConstantAndNamingUtils.SENDER_SECRET_KEY_RING, ConstantAndNamingUtils.SENDER_PUBLIC_KEY_RING);
+    /**
+     * The constant receiverLeyRingManager.
+     */
     public static KeyRingManager receiverLeyRingManager = new KeyRingManagerImpl(ConstantAndNamingUtils.RECEIVER_SECRET_KEY_RING, ConstantAndNamingUtils.RECEIVER_PUBLIC_KEY_RING);
 
 
+    /**
+     * Configure logging.
+     */
     public static void configureLogging(){
         BasicConfigurator.configure();
     }
 
+    /**
+     * Init security provider.
+     */
     public static void initSecurityProvider(){
         Security.addProvider(new BouncyCastleProvider());
     }
 
+    /**
+     * The entry point of application.
+     *
+     * @param args the input arguments
+     * @throws IOException                           the io exception
+     * @throws PGPException                          the pgp exception
+     * @throws NoSuchAlgorithmException              the no such algorithm exception
+     * @throws PublicKeyRingDoesNotContainElGamalKey the public key ring does not contain el gamal key
+     */
     public static void main(String[] args) throws IOException, PGPException, NoSuchAlgorithmException, PublicKeyRingDoesNotContainElGamalKey {
         initSecurityProvider();
         configureLogging();

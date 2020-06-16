@@ -11,6 +11,9 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.util.Calendar;
 
+/**
+ * The type Export key stage.
+ */
 public class ExportKeyStage extends Stage {
 
     private VBox root;
@@ -18,6 +21,12 @@ public class ExportKeyStage extends Stage {
 
     private KeyRingHumanFormat.KeyType selectedType = KeyRingHumanFormat.KeyType.PUBLIC;
 
+    /**
+     * Instantiates a new Export key stage.
+     *
+     * @param primaryStage the primary stage
+     * @param selected     the selected
+     */
     public ExportKeyStage(Stage primaryStage, KeyRingHumanFormat selected){
         this.initModality(Modality.APPLICATION_MODAL);
         this.initOwner(primaryStage);
@@ -76,6 +85,11 @@ public class ExportKeyStage extends Stage {
         this.setScene(this.scene);
     }
 
+    /**
+     * Alert info.
+     *
+     * @param message the message
+     */
     public void alertInfo(String message){
         Alert alert = new Alert(Alert.AlertType.INFORMATION, message, ButtonType.OK);
         alert.showAndWait();

@@ -11,6 +11,9 @@ import javafx.scene.control.Alert.*;
 
 import static etf.openpgp.tf160342dsm160425d.backend.Backend.*;
 
+/**
+ * The type Generate key stage.
+ */
 public class GenerateKeyStage extends Stage {
 
     private int keySizeDSA = KEY_SIZE_1024;
@@ -19,6 +22,11 @@ public class GenerateKeyStage extends Stage {
     private VBox root;
     private Scene scene;
 
+    /**
+     * Instantiates a new Generate key stage.
+     *
+     * @param primaryStage the primary stage
+     */
     public GenerateKeyStage(Stage primaryStage) {
         this.initModality(Modality.APPLICATION_MODAL);
         this.initOwner(primaryStage);
@@ -117,14 +125,29 @@ public class GenerateKeyStage extends Stage {
         this.setScene(this.scene);
     }
 
+    /**
+     * Gets key size dsa.
+     *
+     * @return the key size dsa
+     */
     public int getKeySizeDSA() {
         return keySizeDSA;
     }
 
+    /**
+     * Gets key size elgamal.
+     *
+     * @return the key size elgamal
+     */
     public int getKeySizeELGAMAL() {
         return keySizeELGAMAL;
     }
 
+    /**
+     * Alert info.
+     *
+     * @param message the message
+     */
     public void alertInfo(String message){
         Alert alert = new Alert(AlertType.INFORMATION, message, ButtonType.OK);
         alert.showAndWait();

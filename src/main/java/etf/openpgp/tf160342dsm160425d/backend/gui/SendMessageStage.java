@@ -17,10 +17,23 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Optional;
 
+/**
+ * The type Send message stage.
+ */
 public class SendMessageStage extends Stage {
 
+    /**
+     * The enum Encryption algorithm.
+     */
     public enum ENCRYPTION_ALGORITHM {
-        ALGO_3DES, ALGO_AES
+        /**
+         * Algo 3 des encryption algorithm.
+         */
+        ALGO_3DES,
+        /**
+         * Algo aes encryption algorithm.
+         */
+        ALGO_AES
     }
 
     private VBox root;
@@ -35,6 +48,11 @@ public class SendMessageStage extends Stage {
     private ObservableList<KeyRingHumanFormat> publicKeys;
     private ObservableList<KeyRingHumanFormat> privateKeys;
 
+    /**
+     * Instantiates a new Send message stage.
+     *
+     * @param primaryStage the primary stage
+     */
     public SendMessageStage(Stage primaryStage) {
         this.initModality(Modality.APPLICATION_MODAL);
         this.initOwner(primaryStage);
@@ -49,6 +67,7 @@ public class SendMessageStage extends Stage {
             arrayList.add(key.getName() + " <" + key.getEmail() + ">");
         }
         publicKeysListView.setItems(FXCollections.observableList(arrayList));
+        publicKeysListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         publicKeysListView.setDisable(true);
 
         ToggleGroup algoChooserToggleGroup = new ToggleGroup();
@@ -231,6 +250,11 @@ public class SendMessageStage extends Stage {
 
     }
 
+    /**
+     * Alert info.
+     *
+     * @param message the message
+     */
     public void alertInfo(String message){
         Alert alert = new Alert(Alert.AlertType.INFORMATION, message, ButtonType.OK);
         alert.showAndWait();

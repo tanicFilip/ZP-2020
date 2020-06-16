@@ -105,7 +105,7 @@ public interface KeyRingManager {
     /**
      * Remove key ring from public key ring collection.
      *
-     * @param userId                     the user id
+     * @param userId the user id
      */
     void removeKeyRingFromPublicKeyRingCollection(String userId);
 }

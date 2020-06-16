@@ -22,36 +22,93 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * The type Simulation.
+ */
 public class Simulation {
     private static final Logger logger = LoggerFactory.getLogger(Simulation.class);
 
+    /**
+     * The constant SENDER_EMAIL.
+     */
     public static final String SENDER_EMAIL = "sender@mail.com";
+    /**
+     * The constant SENDER_NAME.
+     */
     public static final String SENDER_NAME = "Sender";
+    /**
+     * The constant RECEIVER_EMAIL.
+     */
     public static final String RECEIVER_EMAIL = "receiver@mail.com";
+    /**
+     * The constant RECEIVER_NAME.
+     */
     public static final String RECEIVER_NAME = "Receiver";
+    /**
+     * The constant PASSWORD.
+     */
     public static final String PASSWORD = "password";
 
 
+    /**
+     * The constant inputFileName.
+     */
     public static final String inputFileName = "input.txt";
+    /**
+     * The constant outputFileName.
+     */
     public static final String outputFileName = "signed-input.asc";
+    /**
+     * The constant encodedOutputFileName.
+     */
     public static final String encodedOutputFileName = "encoded-input.asc";
+    /**
+     * The constant decodedSignedFileName.
+     */
     public static final String decodedSignedFileName = "decoded-signed-output.asc";
+    /**
+     * The constant decodedFileName.
+     */
     public static final String decodedFileName = "decoded-output.txt";
 
+    /**
+     * The constant keySize.
+     */
     public static final int keySize = 2048;
 
+    /**
+     * The constant pgp.
+     */
     public static PGP pgp = new PGPImpl();
+    /**
+     * The constant senderKeyRingManager.
+     */
     public static KeyRingManager senderKeyRingManager = new KeyRingManagerImpl(ConstantAndNamingUtils.SENDER_SECRET_KEY_RING, ConstantAndNamingUtils.SENDER_PUBLIC_KEY_RING);
+    /**
+     * The constant receiverKeyRingManager.
+     */
     public static KeyRingManager receiverKeyRingManager = new KeyRingManagerImpl(ConstantAndNamingUtils.RECEIVER_SECRET_KEY_RING, ConstantAndNamingUtils.RECEIVER_PUBLIC_KEY_RING);
 
+    /**
+     * Configure logging.
+     */
     public static void configureLogging(){
         BasicConfigurator.configure();
     }
 
+    /**
+     * Init security provider.
+     */
     public static void initSecurityProvider(){
         Security.addProvider(new BouncyCastleProvider());
     }
 
+    /**
+     * The entry point of application.
+     *
+     * @param args the input arguments
+     * @throws Exception the exception
+     */
     public static void main(String[] args) throws Exception {
 
         configureLogging();

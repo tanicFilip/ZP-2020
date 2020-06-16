@@ -30,19 +30,53 @@ import java.security.NoSuchAlgorithmException;
 import java.security.Security;
 import java.util.ArrayList;
 
+/**
+ * The type Backend.
+ */
 public class Backend {
 
+    /**
+     * The constant PUBLIC_KEY_FILES.
+     */
     public static String PUBLIC_KEY_FILES = ".data/export";
+    /**
+     * The constant TEMP_FILES.
+     */
     public static String TEMP_FILES = "./data/temp";
+    /**
+     * The constant SECRET_FILENAME.
+     */
     public static String SECRET_FILENAME = "./data/secret_keys_collection.pgp";
+    /**
+     * The constant PUBLIC_FILENAME.
+     */
     public static String PUBLIC_FILENAME = "./data/public_keys_collection.pgp";
 
+    /**
+     * The enum Asymmetric.
+     */
     public static enum ASYMMETRIC {
-        DSA , ELGAMAL
+        /**
+         * Dsa asymmetric.
+         */
+        DSA ,
+        /**
+         * Elgamal asymmetric.
+         */
+        ELGAMAL
     }
 
+    /**
+     * The constant KEY_SIZE_1024.
+     */
     public static int KEY_SIZE_1024 = 1024;
+    /**
+     * The constant KEY_SIZE_2048.
+     */
     public static int KEY_SIZE_2048 = 2048;
+    /**
+     * The constant KEY_SIZE_4096.
+     */
     public static int KEY_SIZE_4096 = 4096;
 
 
@@ -59,6 +93,11 @@ public class Backend {
         initSecurityProvider();
     }
 
+    /**
+     * Get instance backend.
+     *
+     * @return the backend
+     */
     public static Backend getInstance(){
         if(instance == null){
             instance = new Backend();
@@ -118,6 +157,16 @@ public class Backend {
         return "";
     }
 
+    /**
+     * Generate key pair boolean.
+     *
+     * @param name           the name
+     * @param email          the email
+     * @param password       the password
+     * @param keySizeDSA     the key size dsa
+     * @param keySizeELGAMAL the key size elgamal
+     * @return the boolean
+     */
     public boolean generateKeyPair(String name, String email, String password, int keySizeDSA, int keySizeELGAMAL){
         try {
             PGPKeyPair keyPairDSA = pgpImpl.generateKeyPair(
@@ -147,7 +196,17 @@ public class Backend {
         return false;
     }
 
-    // TO DO: Detect if key is public or secret and remove accordingly!!!
+    /**
+     * Remove key pair boolean.
+     *
+     * @param name                       the name
+     * @param email                      the email
+     * @param password                   the password
+     * @param masterPublicKeyFingerprint the master public key fingerprint
+     * @param keyType                    the key type
+     * @return the boolean
+     */
+// TO DO: Detect if key is public or secret and remove accordingly!!!
     public boolean removeKeyPair(String name, String email, String password, byte[] masterPublicKeyFingerprint, KeyRingHumanFormat.KeyType keyType){
         try {
             if(keyType == KeyRingHumanFormat.KeyType.PAIR){
@@ -169,6 +228,18 @@ public class Backend {
         return false;
     }
 
+    /**
+     * Export key boolean.
+     *
+     * @param name                       the name
+     * @param email                      the email
+     * @param password                   the password
+     * @param masterPublicKeyFingerprint the master public key fingerprint
+     * @param keyType                    the key type
+     * @param exportKeyType              the export key type
+     * @param exportTo                   the export to
+     * @return the boolean
+     */
     public boolean exportKey(String name, String email, String password, byte[] masterPublicKeyFingerprint, KeyRingHumanFormat.KeyType keyType, KeyRingHumanFormat.KeyType exportKeyType, File exportTo){
         try{
             String userId = ConstantAndNamingUtils.generateUserId(name, email);
@@ -279,6 +350,12 @@ public class Backend {
         return false;
     }
 
+    /**
+     * Import key boolean.
+     *
+     * @param importFrom the import from
+     * @return the boolean
+     */
     public boolean importKey(File importFrom){
         try {
             keyRingManagerImpl.importPublicKey(importFrom.getAbsolutePath());
@@ -303,6 +380,20 @@ public class Backend {
         return false;
     }
 
+    /**
+     * Send message boolean.
+     *
+     * @param message            the message
+     * @param privateFingerprint the private fingerprint
+     * @param publicFingerPrints the public finger prints
+     * @param password           the password
+     * @param encrypt            the encrypt
+     * @param algorithm          the algorithm
+     * @param sign               the sign
+     * @param useZip             the use zip
+     * @param convertToRadix64   the convert to radix 64
+     * @return the boolean
+     */
     public boolean sendMessage(
             File message,
             byte[] privateFingerprint,
@@ -418,7 +509,13 @@ public class Backend {
         return false;
     }
 
-    // returns String[] instead of boolean, different from other methods in this class
+    /**
+     * Receive message string [ ].
+     *
+     * @param message the message
+     * @return the string [ ]
+     */
+// returns String[] instead of boolean, different from other methods in this class
     public String[] receiveMessage(
             File message
     ){
@@ -473,6 +570,9 @@ public class Backend {
         return null;
     }
 
+    /**
+     * Clean temp files.
+     */
     public void cleanTempFiles(){
         var tempFolder = new File(TEMP_FILES);
         if(tempFolder.exists() == false){
@@ -489,6 +589,11 @@ public class Backend {
         }
     }
 
+    /**
+     * The entry point of application.
+     *
+     * @param args the input arguments
+     */
     public static void main(String[] args) {
         /*new PGPKeyRingGenerator()
 
