@@ -4,6 +4,8 @@ import etf.openpgp.tf160342dsm160425d.openpgp.exceptions.BadUserIdFormat;
 import org.bouncycastle.bcpg.PublicKeyAlgorithmTags;
 import org.bouncycastle.openpgp.PGPEncryptedData;
 
+import java.nio.charset.StandardCharsets;
+
 /**
  * The type Naming utils.
  */
@@ -32,8 +34,8 @@ public class ConstantAndNamingUtils {
     private static int counter = 0;
     public static String generatePublicKeyFileName(String userId, byte[] publicKeyFingerprint){
         //return String.format("./data/export/%s-public-key-%s.asc", userId, Instant.now().getNano());
-        //return String.format("./data/export/%s-public-key-%s.asc", userId, new String(publicKeyFingerprint, StandardCharsets.UTF_16));
-        return String.format("./data/export/%s-public-key-%s.asc", userId,counter++);
+        return String.format("./data/export/%s-public-key-%s.asc", userId, new String(publicKeyFingerprint, StandardCharsets.UTF_16));
+        //return String.format("./data/export/%s-public-key-%s.asc", userId,counter++);
     }
 
     /**

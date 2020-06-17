@@ -3,12 +3,17 @@ package etf.openpgp.tf160342dsm160425d.gui;
 import etf.openpgp.tf160342dsm160425d.controller.Controller;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.Calendar;
 
 /**
@@ -91,7 +96,25 @@ public class ExportKeyStage extends Stage {
      * @param message the message
      */
     public void alertInfo(String message){
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, message, ButtonType.OK);
+        Alert alert = null;
+        if(message.contains("Failed")){
+            alert = new Alert(Alert.AlertType.INFORMATION, "", ButtonType.OK);
+            try {
+                File file = new File("./assets/surprised_pikachu.png");
+                InputStream imageInputStream = new FileInputStream(file);
+                ImageView imageView = new ImageView(new Image(imageInputStream));
+                imageView.setFitHeight(200);
+                imageView.setFitWidth(200);
+                alert.setGraphic(imageView);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        else{
+            alert = new Alert(Alert.AlertType.INFORMATION, message, ButtonType.OK);
+        }
+
         alert.showAndWait();
     }
 
